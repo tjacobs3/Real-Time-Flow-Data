@@ -106,9 +106,10 @@
 
 <?php
 
-	include 'feqparser.php';
+	include 'simulationParser.php';
 	parseFile();
-	$x = getU22();
+	$x = getData('U22');
+	//print_r($x);
 	foreach ($x as $i => $values) 
 	{
 		$date =  date_parse_from_format("Y-m-d-H", $i);
@@ -121,7 +122,6 @@
 	}
 
 	echo ']';
-
 
 ?>
 

@@ -1,6 +1,11 @@
 <?php
+
+	//Global arrays to hold location names and all data related to them
 	$locations = Array();
 	$data = Array();
+
+	//Remove invalid entries from the location names
+	//removes blank entries from the array
 	function clearInvalidEntries($count)
 	{
 		global $locations;
@@ -13,6 +18,9 @@
 		}
 	}
 
+	//Parses each line of the file
+	//Splits it based on the number of spaces (greater than 2)
+	//Stores related information about each location in the data array
 	function parseLine($line)
 	{
 		global $locations;
@@ -54,6 +62,7 @@
 			$counter = $counter + 1;
 		}	
 
+		//Store location data for each location name
 		foreach($locations as $place)
 		{
 			if($contents[$counter] != NULL)
@@ -64,17 +73,15 @@
 				$counter++;
 			}
 		}
-		
-
-		//print_r($data['U22']);
 	}
 
-	//Get data
+	//Returns the data based on the location passed in
 	function getData($location)
 	{
 		global $data;
 		return $data[$location];
 	}
+
 
 	//Get all location names
 	function parseNames($val)
@@ -92,7 +99,7 @@
 		clearInvalidEntries($count);
 	}
 
-
+	//Parses a given Simulated data flat file according to a fixed file format
 	function parseFile()
 	{
 		//Open the simulated output file
@@ -127,7 +134,4 @@
 		}
 
 	}
-
-	parseFile();
-	getData('U22');
 ?>
