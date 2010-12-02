@@ -82,8 +82,15 @@
 		return $data[$location];
 	}
 
+	//Get all locations name
+	//Returns an index array with all location names
+	function getLocations()
+	{
+		global $locations;
+		return $locations;
+	}
 
-	//Get all location names
+	//Parse all location names
 	function parseNames($val)
 	{
 		$delimiter = "/[\s]{2,}+/ ";
@@ -123,7 +130,10 @@
 		foreach($splitcontents as $val)
 		{
 			//If line = 1 then get all names
-			if($startCounter == 1) {parseNames($val);}
+			if($startCounter == 1) 
+			{
+				parseNames($val);
+			}
 				
 			//Start parsing the line if startCounter >= 3
 			if($startCounter >= 3)
