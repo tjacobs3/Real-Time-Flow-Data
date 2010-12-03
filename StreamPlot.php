@@ -20,7 +20,7 @@ function plot_point ($time, $yVal)
 	$hour = $datetime[hour];
 	$minute = $datetime[minute];
 	echo "{";
-	echo "x: Date.UTC(".$year.",". $month.",".$day.",".$hour.",".$minute."), ";
+	echo "x: Date.UTC(".$year.",". ($month - 1) .",".$day.",".$hour.",".$minute."), ";
 	echo "y: ". $yVal;
 	/**
 	if ( strtotime($time)*1000 == $annotations && $graphName == "Water Level")
@@ -57,7 +57,7 @@ function get_column_num($title, $partial, $columns)
 	return $columnNum;
 }
 
-function create_graph ($columns, $data, $simData, $columnNum, $location, $varName)
+function create_graph ($columns, $data, $simData, $columnNum, $location, $varName, $simulatedType)
 { ?>
 	$('#container_<?php echo $varName; ?>').renderChart({
 		title: {
@@ -79,7 +79,10 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				$timeColumn = get_column_num("datetime", false, $columns);
 				foreach($data as $val)
 				{
-					plot_point($val[$timeColumn], $val[$columnNum], $columnName);
+					if($val[$columnNum] != NULL)
+					{
+						plot_point($val[$timeColumn], $val[$columnNum], $columnName);
+					}
 				} ?>
 				]
 			}
@@ -98,7 +101,7 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				{ 
 					foreach ($values as $key => $value) 
 					{
-						if($key == 'elevation') plot_point($i, $value / 100);
+						if($key == $simulatedType && ($i != NULL || $value != NULL)) plot_point($i, $value);
 					}
 				} 
 			?> ]} 
@@ -131,12 +134,12 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				if($showElevation)
 				{
 					$columnNum = get_column_num("00065", true, $columns);
-					create_graph($columns, $data, false, $columnNum, $location, "chart1");
+					create_graph($columns, $data, true, $columnNum, $location, "chart1", "elevation");
 				}
 				if($showDischarge)
 				{
 					$columnNum = get_column_num("00060", true, $columns);
-					create_graph($columns, $data, true, $columnNum, $location, "chart2");
+					create_graph($columns, $data, true, $columnNum, $location, "chart2", "flow");
 				}
 ?>
 			});
