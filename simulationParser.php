@@ -54,7 +54,8 @@
 
 				//Counter == 3 means its is the hour value
 				case 3:	$hour = $contents[$counter];
-					$dateTime = $year.'-'.$month.'-'.$day.'-'.$hour;
+					$hour = explode(".", $hour);
+					$dateTime = $year.'-'.$month.'-'.$day.' '.$hour[0].':'.($hours[1]*.6) ;
 					break;
 
 				
@@ -76,21 +77,14 @@
 	}
 
 	//Returns the data based on the location passed in
-	function getData($location)
+	function getSimulationData($location)
 	{
 		global $data;
 		return $data[$location];
 	}
 
-	//Get all locations name
-	//Returns an index array with all location names
-	function getLocations()
-	{
-		global $locations;
-		return $locations;
-	}
 
-	//Parse all location names
+	//Get all location names
 	function parseNames($val)
 	{
 		$delimiter = "/[\s]{2,}+/ ";
@@ -130,10 +124,7 @@
 		foreach($splitcontents as $val)
 		{
 			//If line = 1 then get all names
-			if($startCounter == 1) 
-			{
-				parseNames($val);
-			}
+			if($startCounter == 1) {parseNames($val);}
 				
 			//Start parsing the line if startCounter >= 3
 			if($startCounter >= 3)

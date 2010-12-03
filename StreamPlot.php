@@ -1,0 +1,154 @@
+<?php
+include 'realtimeParser.php';
+include 'simulationParser.php';
+	
+$dataType = array("00065" => "Gage Height, Feet", "00060" => "Discharge, cubic feet per second");
+$location = isset($_GET["location"]) ? $_GET["location"] : false;
+$showRealTime = isset($_GET["realTimeData"]) ? $_GET["realTimeData"] : false;
+$showSimulated = isset($_GET["simulatedData"]) ? $_GET["simulatedData"] : false;
+$showElevation = isset($_GET["elevation"]) ? $_GET["elevation"] : false;
+$showDischarge = isset($_GET["discharge"]) ? $_GET["discharge"] : false;
+
+function plot_point ($time, $yVal)
+{
+    $annotations = 1286952000000; 
+	$format = 'Y-m-d H:i';
+	$datetime = date_parse_from_format($format, $time);
+	$year = $datetime[year];
+	$month = $datetime[month];
+	$day = $datetime[day];
+	$hour = $datetime[hour];
+	$minute = $datetime[minute];
+	echo "{";
+	echo "x: Date.UTC(".$year.",". $month.",".$day.",".$hour.",".$minute."), ";
+	echo "y: ". $yVal;
+	/**
+	if ( strtotime($time)*1000 == $annotations && $graphName == "Water Level")
+    {
+		echo ", marker: { symbol: 'url(/gfx/A.png)' }},";
+    }**/
+	echo ", marker: { enabled: false }}, " ;
+}
+
+function get_type($columnNum, $columns)
+{
+	global $dataType;
+	$columnName = explode("_", $columns[$columnNum]);
+	$columnName = $dataType[$columnName[1]];
+	return $columnName;
+}
+
+function get_column_num($title, $partial, $columns)
+{
+	$columnNum = -1;
+	for($i = 0; $i < count($columns); $i++)
+	{
+		if(!$partial && $columns[$i] == $title)
+		{
+			$columnNum = $i;
+			break;
+		}
+		else if($partial && strpos($columns[$i], $title) !== false)
+		{
+			$columnNum = $i;
+			break;
+		}
+	}
+	return $columnNum;
+}
+
+function create_graph ($columns, $data, $simData, $columnNum, $location, $varName)
+{ ?>
+	$('#container_<?php echo $varName; ?>').renderChart({
+		title: {
+			text: '<?php echo $location; ?>',
+		},
+		yAxis: {
+			title: {
+				text: '<?php echo get_type($columnNum, $columns); ?>'
+			},
+			min: 0.6,
+			startOnTick: true,
+			showFirstLabel: false
+		},
+		series: [{
+			type: 'spline',
+			name: 'Actual Data', 
+			data: [
+			<?php
+				$timeColumn = get_column_num("datetime", false, $columns);
+				foreach($data as $val)
+				{
+					plot_point($val[$timeColumn], $val[$columnNum], $columnName);
+				} ?>
+				]
+			}
+			<?php
+			if($simData)
+			{
+				?>
+				,{
+				type: 'spline',
+				name: 'Simulated Data',
+				data: [
+				<?php
+				parseFile();
+				$x = getSimulationData('U22');
+				foreach ($x as $i => $values) 
+				{ 
+					foreach ($values as $key => $value) 
+					{
+						if($key == 'elevation') plot_point($i, $value / 100);
+					}
+				} 
+			?> ]} 
+			<?php } ?>
+			],
+	});
+<?php 
+}
+?>
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Realtime Data for BLANK</title>
+		<!-- 1. Add these JavaScript inclusions in the head of your page -->
+		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+		<script type="text/javascript" src="/js/highcharts.js"></script>
+
+		<!-- 1a) Optional: the exporting module -->
+		<script type="text/javascript" src="/js/modules/exporting.js"></script>
+		<script type="text/javascript" src="/js/chartFunctions.js"></script>
+		<script type="text/javascript">
+			$(document).ready(function(){
+<?php
+				global $location, $showElevation;
+				$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&format=rdb&period=7&site_no=05531300");
+				$columns = getColumnNames($file);
+				$data = getData($file);
+				if($showElevation)
+				{
+					$columnNum = get_column_num("00065", true, $columns);
+					create_graph($columns, $data, false, $columnNum, $location, "chart1");
+				}
+				if($showDischarge)
+				{
+					$columnNum = get_column_num("00060", true, $columns);
+					create_graph($columns, $data, true, $columnNum, $location, "chart2");
+				}
+?>
+			});
+		</script>
+	</head>
+	<body>
+		<!-- 3. Add the container -->
+		<?php 
+			global $location, $showElevation;
+			if($showElevation) echo '<div id="container_chart1" style="width: 800px; height: 400px; margin: 0 auto"></div>';
+			if($showDischarge) echo '<div id="container_chart2" style="width: 800px; height: 400px; margin: 0 auto"></div>';
+		?>
+        <div id="annotations" style="width: 400px; height: 400px; margin: 0 auto"></div>
+	</body>
+</html>
