@@ -2,16 +2,16 @@
 include 'realtimeParser.php';
 include 'simulationParser.php';
 	
-$dataType = array("00065" => "Gage Height, Feet", "00060" => "Discharge, cubic feet per second");
+$dataType = array("00065" => "Gage Height, Feet", "00060" => "Discharge, cubic feet per second", "00045" => "Precipitation, total, inches");
 $location = isset($_GET["location"]) ? $_GET["location"] : false;
 $showRealTime = isset($_GET["realTimeData"]) ? $_GET["realTimeData"] : false;
 $showSimulated = isset($_GET["simulatedData"]) ? $_GET["simulatedData"] : false;
 $showElevation = isset($_GET["elevation"]) ? $_GET["elevation"] : false;
 $showDischarge = isset($_GET["discharge"]) ? $_GET["discharge"] : false;
+$showPrecipitation = isset($_GET["precipitation"]) ? $_GET["precipitation"] : false;
 
 function plot_point ($time, $yVal)
 {
-    $annotations = 1286952000000; 
 	$format = 'Y-m-d H:i';
 	$datetime = date_parse_from_format($format, $time);
 	$year = $datetime[year];
@@ -57,23 +57,53 @@ function get_column_num($title, $partial, $columns)
 	return $columnNum;
 }
 
-function create_graph ($columns, $data, $simData, $columnNum, $location, $varName, $simulatedType)
+function print_yAxis_code($labels, $opposite)
+{ 
+	echo 'yAxis: [';
+	for($i = 0; $i < count($labels); $i++)
+	{
+		if($i == 0) echo "{";
+		else echo ",{";
+		?>
+			title: {
+				text: '<?php echo $labels[$i]; ?>'
+			},
+			startOnTick: true,
+		<?php
+		if($opposite[$i])
+		{
+			?>
+				opposite: true,
+				reversed: true,
+				min: 0,
+				max: 5,
+			<?php
+		}
+		echo "}";
+	}
+	echo '],';
+}
+
+function print_title_code($title)
+{
+	echo 'title: {';
+	echo '	text: \''. $title .'\',';
+	echo '},';
+}
+
+function create_graph ($columns, $data, $simData, $columnNum, $location, $varName, $simulatedType, $dataMultiplier, $includePrecip)
 { ?>
 	$('#container_<?php echo $varName; ?>').renderChart({
-		title: {
-			text: '<?php echo $location; ?>',
-		},
-		yAxis: {
-			title: {
-				text: '<?php echo get_type($columnNum, $columns); ?>'
-			},
-			min: 0.6,
-			startOnTick: true,
-			showFirstLabel: false
-		},
+	<?php print_title_code($location); ?>
+	<?php
+		$labels[0] = get_type($columnNum, $columns); $opposite[0] = false;
+		if($includePrecip) $labels[1] = 'Precipitation, total, .01 inches'; $opposite[1] = true;
+		print_yAxis_code($labels, $opposite);
+	?>
 		series: [{
 			type: 'spline',
-			name: 'Actual Data', 
+			name: 'Observed Data', 
+			yAxis: 0,
 			data: [
 			<?php
 				$timeColumn = get_column_num("datetime", false, $columns);
@@ -81,11 +111,33 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				{
 					if($val[$columnNum] != NULL)
 					{
-						plot_point($val[$timeColumn], $val[$columnNum], $columnName);
+						plot_point($val[$timeColumn], $val[$columnNum] * $dataMultiplier);
 					}
 				} ?>
 				]
 			}
+			<?php
+			if($includePrecip)
+			{
+				?>
+				,{
+				type: 'spline',
+				name: 'Precipitation', 
+				yAxis: 1,
+				data: [
+				<?php
+					$precipColumn = get_column_num("00045", true, $columns);
+					$timeColumn = get_column_num("datetime", false, $columns);
+					foreach($data as $val)
+					{
+						if($val[$columnNum] != NULL)
+						{
+							plot_point($val[$timeColumn], $val[$precipColumn] * 10);
+						}
+					} ?>
+					]
+				}
+			<?php } ?>
 			<?php
 			if($simData)
 			{
@@ -93,6 +145,7 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				,{
 				type: 'spline',
 				name: 'Simulated Data',
+				yAxis: 0,
 				data: [
 				<?php
 				parseFile();
@@ -101,7 +154,7 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				{ 
 					foreach ($values as $key => $value) 
 					{
-						if($key == $simulatedType && ($i != NULL || $value != NULL)) plot_point($i, $value);
+						if($key == $simulatedType && ($i != NULL || $value != NULL)) plot_point($i, $value * $dataMultiplier);
 					}
 				} 
 			?> ]} 
@@ -127,19 +180,19 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 		<script type="text/javascript">
 			$(document).ready(function(){
 <?php
-				global $location, $showElevation;
-				$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&format=rdb&period=7&site_no=05531300");
+				global $location, $showElevation, $showPrecipitation;
+				$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=7&site_no=05531300");
 				$columns = getColumnNames($file);
 				$data = getData($file);
 				if($showElevation)
 				{
 					$columnNum = get_column_num("00065", true, $columns);
-					create_graph($columns, $data, true, $columnNum, $location, "chart1", "elevation");
+					create_graph($columns, $data, $showSimulated, $columnNum, $location, "chart1", "elevation", 1, $showPrecipitation);
 				}
 				if($showDischarge)
 				{
 					$columnNum = get_column_num("00060", true, $columns);
-					create_graph($columns, $data, true, $columnNum, $location, "chart2", "flow");
+					create_graph($columns, $data, $showSimulated, $columnNum, $location, "chart2", "flow", 1, false);
 				}
 ?>
 			});
