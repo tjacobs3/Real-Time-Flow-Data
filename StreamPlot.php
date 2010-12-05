@@ -10,15 +10,29 @@ $showElevation = isset($_GET["elevation"]) ? $_GET["elevation"] : false;
 $showDischarge = isset($_GET["discharge"]) ? $_GET["discharge"] : false;
 $showPrecipitation = isset($_GET["precipitation"]) ? $_GET["precipitation"] : false;
 
+
+//Parse given date based on Y-m-d H:i
+function formatDate($time)
+{
+	$contents = explode(" ",$time);
+	$date = explode("-", $contents[0]);
+	$time = explode(":", $contents[1]);
+	$dateTime['year'] = $date[0];
+	$dateTime['month'] = $date[1];
+	$dateTime['day'] = $date[2];
+	$dateTime['hour'] = $time[0];
+	$dateTime['minute'] = $time[1];
+	return $dateTime;
+}
+
 function plot_point ($time, $yVal)
 {
-	$format = 'Y-m-d H:i';
-	$datetime = date_parse_from_format($format, $time);
-	$year = $datetime[year];
-	$month = $datetime[month];
-	$day = $datetime[day];
-	$hour = $datetime[hour];
-	$minute = $datetime[minute];
+	$datetime = formatDate($time);
+	$year = $datetime['year'];
+	$month = $datetime['month'];
+	$day = $datetime['day'];
+	$hour = $datetime['hour'];
+	$minute = $datetime['minute'];
 	echo "{";
 	echo "x: Date.UTC(".$year.",". ($month - 1) .",".$day.",".$hour.",".$minute."), ";
 	echo "y: ". $yVal;
