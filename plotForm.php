@@ -45,6 +45,7 @@
 			<input type="checkbox" name="simulatedData" value="true" /> Simulated Data<br />
 			<input type="checkbox" name="elevation" value="true" checked /> Show Elevation<br />
 			<input type="checkbox" name="discharge" value="true" /> Show Discharge<br />
+			<input type="checkbox" name="precipitation" value="true" /> Show Precipitation<br />
 			Simulated File Location: <input type="textbox"  name="simulatedLocation" value="gate798.wsq" /><br /> 
 			
 			<input type="submit" value="Create Plot" />			

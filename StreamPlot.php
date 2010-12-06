@@ -3,7 +3,8 @@ include 'realtimeParser.php';
 include 'simulationParser.php';
 	
 $dataType = array("00065" => "Gage Height, Feet", "00060" => "Discharge, cubic feet per second", "00045" => "Precipitation, total, inches");
-$location = isset($_GET["location"]) ? $_GET["location"] : false;
+$titles = array("00065" => "Gage Height", "00060" => "Discharge", "00045" => "Precipitation");
+$location = isset($_GET["location"]) ? $_GET["location"] : "Unspecified";
 $showRealTime = isset($_GET["realTimeData"]) ? $_GET["realTimeData"] : false;
 $showSimulated = isset($_GET["simulatedData"]) ? $_GET["simulatedData"] : false;
 $showElevation = isset($_GET["elevation"]) ? $_GET["elevation"] : false;
@@ -49,6 +50,14 @@ function get_type($columnNum, $columns)
 	global $dataType;
 	$columnName = explode("_", $columns[$columnNum]);
 	$columnName = $dataType[$columnName[1]];
+	return $columnName;
+}
+
+function get_title($columnNum, $columns)
+{
+	global $titles;
+	$columnName = explode("_", $columns[$columnNum]);
+	$columnName = $titles[$columnName[1]];
 	return $columnName;
 }
 
@@ -108,7 +117,7 @@ function print_title_code($title)
 function create_graph ($columns, $data, $simData, $columnNum, $location, $varName, $simulatedType, $dataMultiplier, $includePrecip)
 { ?>
 	$('#container_<?php echo $varName; ?>').renderChart({
-	<?php print_title_code($location); ?>
+	<?php global $location; print_title_code($location . " " . get_title($columnNum, $columns)); ?>
 	<?php
 		$labels[0] = get_type($columnNum, $columns); $opposite[0] = false;
 		if($includePrecip) $labels[1] = 'Precipitation, total, .01 inches'; $opposite[1] = true;
@@ -162,8 +171,9 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				yAxis: 0,
 				data: [
 				<?php
-				global $simulatedFileLocation;	
-				parseFile($simulatedFileLocation);;
+				global $simulatedFileLocation, $location;	
+				parseFile($simulatedFileLocation);
+				$x = getSimulationData($location);
 				foreach ($x as $i => $values) 
 				{ 
 					foreach ($values as $key => $value) 
@@ -183,7 +193,7 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>Realtime Data for BLANK</title>
+		<title>Realtime Data for <?php global $location; echo $location; ?></title>
 		<!-- 1. Add these JavaScript inclusions in the head of your page -->
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
 		<script type="text/javascript" src="/js/highcharts.js"></script>
@@ -216,7 +226,7 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 		<!-- 3. Add the container -->
 		<?php 
 			global $location, $showElevation;
-			if($showElevation) echo '<div id="container_chart1" style="width: 800px; height: 400px; margin: 0px auto 20px auto"></div><br />';
+			if($showElevation) echo '<div id="container_chart1" style="width: 820px; height: 400px; margin: 0px auto 20px auto"></div><br />';
 			if($showDischarge) echo '<div id="container_chart2" style="width: 800px; height: 400px; margin: 0 auto"></div>';
 		?>
         <div id="annotations" style="width: 400px; height: 400px; margin: 0 auto"></div>
