@@ -196,11 +196,12 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 		<title>Realtime Data for <?php global $location; echo $location; ?></title>
 		<!-- 1. Add these JavaScript inclusions in the head of your page -->
 		<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-		<script type="text/javascript" src="/js/highcharts.js"></script>
+		<script type="text/javascript" src="js/highcharts.js"></script>
 
 		<!-- 1a) Optional: the exporting module -->
-		<script type="text/javascript" src="/js/modules/exporting.js"></script>
-		<script type="text/javascript" src="/js/chartFunctions.js"></script>
+		<script type="text/javascript" src="js/modules/exporting.js"></script>
+		<script type="text/javascript" src="js/chartFunctions.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/layout.css" />
 		<script type="text/javascript">
 			$(document).ready(function(){
 <?php
@@ -224,11 +225,14 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 	</head>
 	<body>
 		<!-- 3. Add the container -->
+		<div class="mainColumn">
+		<h3 class="fancy">Plot for <?php global $location; echo $location; ?></h2>
 		<?php 
 			global $location, $showElevation;
 			if($showElevation) echo '<div id="container_chart1" style="width: 820px; height: 400px; margin: 0px auto 20px auto"></div><br />';
 			if($showDischarge) echo '<div id="container_chart2" style="width: 800px; height: 400px; margin: 0 auto"></div>';
 		?>
         <div id="annotations" style="width: 400px; height: 400px; margin: 0 auto"></div>
+		</div>
 	</body>
 </html>

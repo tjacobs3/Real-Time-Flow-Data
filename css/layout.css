@@ -1,0 +1,22 @@
+html, body{
+	padding: 0px;
+	margin: 0px;
+	background-color: #dfdfdf;
+}
+
+.mainColumn {
+	padding-top: 30px;
+	width: 995px;
+	background: #FFFFFF url(../gfx/column.png);
+	margin: auto;
+}
+
+h3.fancy{
+	width: 820px;
+	border-bottom:1px solid #AAAAAA;
+	color:#3c3c3c;
+	font:bold 1.4em "Lucida Grande",Helvetica,"Arial Unicode MS","Arial Unicode",Arial,sans-serif;
+	letter-spacing:1px;
+	padding:20px 0 3px;
+	margin: 0px auto 15px auto;
+}

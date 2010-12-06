@@ -5,7 +5,7 @@ jQuery.fn.renderChart = function(attr) {
   var chart = charts[i] = new Highcharts.Chart({
     chart: {
 		renderTo: $(this).attr('id'),
-		marginRight: 50,
+		marginRight: 80,
 		zoomType: 'x',
 		defaultSeriesType: 'line'
     },
