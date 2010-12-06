@@ -216,7 +216,7 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 		<!-- 3. Add the container -->
 		<?php 
 			global $location, $showElevation;
-			if($showElevation) echo '<div id="container_chart1" style="width: 800px; height: 400px; margin: 0 auto"></div>';
+			if($showElevation) echo '<div id="container_chart1" style="width: 800px; height: 400px; margin: 0px auto 20px auto"></div><br />';
 			if($showDischarge) echo '<div id="container_chart2" style="width: 800px; height: 400px; margin: 0 auto"></div>';
 		?>
         <div id="annotations" style="width: 400px; height: 400px; margin: 0 auto"></div>
