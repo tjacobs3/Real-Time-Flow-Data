@@ -101,10 +101,10 @@
 	}
 
 	//Parses a given Simulated data flat file according to a fixed file format
-	function parseFile()
+	function parseFile($fileLocation)
 	{
 		//Open the simulated output file
-		$filename = "gate798.wsq";
+		$filename = $fileLocation;
 		$fd = fopen ($filename, "r");
 		$contents = fread ($fd,filesize ($filename));
 		fclose ($fd);

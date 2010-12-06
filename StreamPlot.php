@@ -9,7 +9,7 @@ $showSimulated = isset($_GET["simulatedData"]) ? $_GET["simulatedData"] : false;
 $showElevation = isset($_GET["elevation"]) ? $_GET["elevation"] : false;
 $showDischarge = isset($_GET["discharge"]) ? $_GET["discharge"] : false;
 $showPrecipitation = isset($_GET["precipitation"]) ? $_GET["precipitation"] : false;
-
+$simulatedFileLocation = isset($_GET["simulatedLocation"]) ? $_GET["simulatedLocation"] : false;
 
 //Parse given date based on Y-m-d H:i
 function formatDate($time)
@@ -162,8 +162,8 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				yAxis: 0,
 				data: [
 				<?php
-				parseFile();
-				$x = getSimulationData('U22');
+				global $simulatedFileLocation;	
+				parseFile($simulatedFileLocation);;
 				foreach ($x as $i => $values) 
 				{ 
 					foreach ($values as $key => $value) 
