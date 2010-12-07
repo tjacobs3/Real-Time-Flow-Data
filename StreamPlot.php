@@ -12,21 +12,38 @@ $showDischarge = isset($_GET["discharge"]) ? $_GET["discharge"] : false;
 $showPrecipitation = isset($_GET["precipitation"]) ? $_GET["precipitation"] : false;
 $simulatedFileLocation = isset($_GET["simulatedLocation"]) ? $_GET["simulatedLocation"] : false;
 
+function get_annotations ($location, $chart, $series) {
+  $link = mysql_connect("mysql.imwillow.com", "uiuc492", "492492!!") or die(mysql_error());
+  mysql_select_db("uiuc492") or die(mysql_error());
+      
+  $query = "SELECT * FROM `Annotation` WHERE location = '" . $location . "' AND chart_title ='" . $chart . "' AND series_name = '" . $series ."'";
+  
+  $result = mysql_query($query);
+  $a = array();  
+  while ($r = mysql_fetch_assoc($result)) {
+     $a[$r['time']] = $r['annotation'];
+  }
+  
+  mysql_close($link);
+  return $a;
+}
+
 //Parse given date based on Y-m-d H:i
 function formatDate($time)
 {
-	$contents = explode(" ",$time);
-	$date = explode("-", $contents[0]);
-	$time = explode(":", $contents[1]);
-	$dateTime['year'] = $date[0];
-	$dateTime['month'] = $date[1];
-	$dateTime['day'] = $date[2];
-	$dateTime['hour'] = $time[0];
-	$dateTime['minute'] = $time[1];
+  $formattime = $time . ':00';
+  $contents = explode(" ",$time);
+  $date = explode("-", $contents[0]);
+  $time = explode(":", $contents[1]);
+  $dateTime['year'] = $date[0];
+  $dateTime['month'] = $date[1];
+  $dateTime['day'] = $date[2];
+  $dateTime['hour'] = $time[0];
+  $dateTime['minute'] = $time[1];
 	return $dateTime;
 }
 
-function plot_point ($time, $yVal)
+function plot_point ($time, $yVal, $annotations)
 {
 	$datetime = formatDate($time);
 	$year = $datetime['year'];
@@ -34,15 +51,20 @@ function plot_point ($time, $yVal)
 	$day = $datetime['day'];
 	$hour = $datetime['hour'];
 	$minute = $datetime['minute'];
+	
+	$timestamp = mktime($hour, $minute, 0, $month, $day, $year);
 	echo "{";
 	echo "x: Date.UTC(".$year.",". ($month - 1) .",".$day.",".$hour.",".$minute."), ";
 	echo "y: ". $yVal;
-	/**
-	if ( strtotime($time)*1000 == $annotations && $graphName == "Water Level")
+	/**	if ( strtotime($time)*1000 == $annotations && $graphName == "Water Level")
     {
 		echo ", marker: { symbol: 'url(/gfx/A.png)' }},";
     }**/
-	echo ", marker: { enabled: false }}, " ;
+  if (array_key_exists($timestamp, $annotations)) {
+    echo ", marker: {enabled: true, radius: 5}}, ";
+  } else {
+	  echo ", marker: { enabled: false }}, " ;
+	}
 }
 
 function get_type($columnNum, $columns)
@@ -118,11 +140,13 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 { ?>
 	$('#container_<?php echo $varName; ?>').renderChart({
 	<?php global $location; print_title_code($location . " " . get_title($columnNum, $columns)); ?>
+	location: '<?php echo $location; ?>',
 	<?php
 		$labels[0] = get_type($columnNum, $columns); $opposite[0] = false;
 		if($includePrecip) $labels[1] = 'Precipitation, total, .01 inches'; $opposite[1] = true;
 		print_yAxis_code($labels, $opposite);
 	?>
+    
 		series: [{
 			type: 'spline',
 			name: 'Observed Data', 
@@ -130,11 +154,13 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 			data: [
 			<?php
 				$timeColumn = get_column_num("datetime", false, $columns);
+				$annotations = get_annotations($location, get_title($columnNum, $columns), "Observed Data");
+				
 				foreach($data as $val)
 				{
 					if($val[$columnNum] != NULL)
 					{
-						plot_point($val[$timeColumn], $val[$columnNum] * $dataMultiplier);
+						plot_point($val[$timeColumn], $val[$columnNum] * $dataMultiplier, $annotations);
 					}
 				} ?>
 				]
@@ -220,19 +246,23 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 					create_graph($columns, $data, $showSimulated, $columnNum, $location, "chart2", "flow", 1, false);
 				}
 ?>
+			  displayAnnotations();
 			});
 		</script>
 	</head>
 	<body>
 		<!-- 3. Add the container -->
 		<div class="mainColumn">
-		<h3 class="fancy">Plot for <?php global $location; echo $location; ?></h2>
+		<h3 class="fancy">Plot for <?php global $location; echo $location; ?></h3>
 		<?php 
 			global $location, $showElevation;
 			if($showElevation) echo '<div id="container_chart1" style="width: 820px; height: 400px; margin: 0px auto 20px auto"></div><br />';
 			if($showDischarge) echo '<div id="container_chart2" style="width: 800px; height: 400px; margin: 0 auto"></div>';
 		?>
-        <div id="annotations" style="width: 400px; height: 400px; margin: 0 auto"></div>
+        <div id="annotations">
+          <div id="annotation-list">
+          </div>
+        </div>
 		</div>
 	</body>
 </html>

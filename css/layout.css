@@ -1,7 +1,6 @@
 html, body{
-	padding: 0px;
+  background-color: #dfdfdf;
 	margin: 0px;
-	background-color: #dfdfdf;
 }
 
 .mainColumn {
@@ -19,4 +18,40 @@ h3.fancy{
 	letter-spacing:1px;
 	padding:20px 0 3px;
 	margin: 0px auto 15px auto;
+}
+
+#annotations {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  font-weight: normal;
+  text-align: left;
+  margin: 0px auto 15px auto;
+  min-height: 400px;
+  width: 820px;
+}
+
+.annotation-list {
+  
+}
+
+.annotation-list dl {
+  margin: 0;
+  padding: 0;
+}
+
+.annotation-list dt {
+  display: inline-block;
+  font-weight: bold;
+  margin-right: 1em;
+  text-align: right;
+  width: 1em;
+}
+
+.annotation-list dd.date {
+  display: inline-block;
+  margin: 0;
+}
+
+.annotation-list dd.annotation-text {
+  margin-left: 2em;
 }
