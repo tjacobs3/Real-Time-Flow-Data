@@ -38,11 +38,11 @@ jQuery.fn.renderChart = function(attr) {
 			linewidth: 1,
 			point: {
 				events: {
-					click: function (location, title) {
+					click: function (location, title, i) {
 					  return function() {
   					  console.log(this);
   						var reply = prompt("Enter annotation information here: ", "");
-  						if (reply != "") {
+  						if (reply != null && reply != "") {
     						$.get("annotation.php", {
     						  location: location,
     						  chart_title: title,
@@ -50,8 +50,8 @@ jQuery.fn.renderChart = function(attr) {
     						  time: this.x,
                   annotation: reply
     						}, function (data) {
-    						  alert("success!");
     						  console.log(data);
+    						  location.reload();
     						});
     					}
 					  }
@@ -192,32 +192,32 @@ function addAnnotationToGraph(chart, series_no, timestamp, number) {
   var posX, posY;
   var data = chart.series[series_no].data;
   var element = getDataElementByX(data, timestamp);
-  var y = element.y;
+  var y = element.plotY;
   
   posX = chart.plotLeft + chart.xAxis[0].translate(timestamp) - 10;
-  posY = chart.plotTop + chart.yAxis[0].translate(y);
+  posY = chart.plotTop + y - 40;
   
   var group = chart.renderer.g('annotation').attr({zIndex: 100}).add();
   
   //rect: function (x, y, width, height, round-corners, stroke-width)
   chart.renderer.rect(posX, posY, 20, 20, 2, 1)
                 .attr({
-                  fill: 'rgba(0, 0, 0, 0.2)',
+                  fill: 'white',
+                  stroke: '#058DC7',
+                  strokeWidth: 2
                 })
                 .add(group);
   
   chart.renderer.path(['M', posX + 10, posY + 20, 'V', element.plotY + chart.plotTop - 5])
                 .attr({
-                  stroke: 'rgba(0, 0, 0, 0.3)',
+                  stroke: '#058DC7',
                   strokeWidth: 1
                 })
                 .add(group);
   
   chart.renderer.text(number, posX+6, posY+15).add(group);
   
-  group.element.onclick = function () {
-    console.log(x);
-  };
+  chart.annotation_groups.push(group);
 }
 
 function displayAnnotations () {
@@ -226,6 +226,8 @@ function displayAnnotations () {
   
   for (c in charts) {
     info  = charts[c].rinfo;
+    charts[c].annotation_groups = [];
+    
     for (s in charts[c].series) {
       series = charts[c].series[s];
       id = info.location + '-' + info.title + '-' + series.name;
@@ -247,9 +249,20 @@ function displayAnnotations () {
             for (timestamp in annotations) {
               time = new Date(parseInt(timestamp));
               addAnnotationToGraph(chart, series_no, timestamp, ++n);
-              $('#' + id).append('<dl><dt>' + n + '</dt><dd class="date">' + time.toLocaleDateString() + '</dd><dd class="annotation-text">' + annotations[timestamp] + '</dd></dl>');
+              $('#' + id).append('<dl><dt>' + n + '</dt><dd class="date">' + time.toLocaleString() + '</dd><dd class="annotation-text">' + annotations[timestamp] + '</dd></dl>');
             }
             
+            var g;
+            for (g in chart.annotation_groups) {
+              $(chart.annotation_groups[g].element).click(
+                function (g) {
+                  return function () {
+                    $('#' + id + ' dl').removeClass('highlighted')
+                    $($('#' + id + ' dl')[g]).addClass('highlighted');
+                  }
+                } (g)
+              )
+            }
           }
         } (charts[c], s, id)
       );

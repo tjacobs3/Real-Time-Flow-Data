@@ -3,7 +3,7 @@
     $link = mysql_connect("mysql.imwillow.com", "uiuc492", "492492!!") or die(mysql_error());
     mysql_select_db("uiuc492") or die(mysql_error());
 
-    $query = "SELECT * FROM `Annotation` WHERE location = '" . $location . "' AND chart_title ='" . $chart . "' AND series_name = '" . $series ."' ORDER BY `Annotation`.`create_time` ASC";
+    $query = "SELECT * FROM `Annotation` WHERE location = '" . $location . "' AND chart_title ='" . $chart . "' AND series_name = '" . $series ."' ORDER BY `Annotation`.`time` ASC";
 
     $result = mysql_query($query);
     $a = array();  

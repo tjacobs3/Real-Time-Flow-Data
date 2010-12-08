@@ -35,8 +35,16 @@ h3.fancy{
 }
 
 .annotation-list dl {
-  margin: 0;
-  padding: 0;
+  margin: 0.5em;
+  padding: 0.5em;
+}
+
+.annotation-list dl:hover,
+.annotation-list dl.highlighted {
+  background: #E6EFFF;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;
 }
 
 .annotation-list dt {
@@ -49,9 +57,14 @@ h3.fancy{
 
 .annotation-list dd.date {
   display: inline-block;
-  margin: 0;
+  font-weight: bold;
+  margin: 0 0 0.25em 0;
 }
 
 .annotation-list dd.annotation-text {
   margin-left: 2em;
+}
+
+.highcharts-annotation {
+  cursor: pointer;
 }
