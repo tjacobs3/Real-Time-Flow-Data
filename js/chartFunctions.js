@@ -242,8 +242,12 @@ function annotationShrinkAll() {
 }
 
 function annotationHover(id, g) {
-  $('.annotation-list dl').removeClass('hover')
+  annotationReleaseAllHover();
   $($('#' + id + ' dl')[g]).addClass('hover');
+}
+
+function annotationReleaseAllHover() {
+  $('.annotation-list dl').removeClass('hover');
 }
 
 function displayAnnotations () {
@@ -307,17 +311,20 @@ function displayAnnotations () {
             var g;
             for (g in chart.annotation_groups) {
               $(chart.annotation_groups[g].element).click(
-                function (g) {
+                function (id, g) {
                   return function () {
                     annotationExpand(id, g);
                   }
-                } (g)
+                } (id, g)
               ).hover(
-                function (g) {
+                function (id, g) {
                   return function () {
                     annotationHover(id, g);
                   }
-                } (g)
+                } (id, g),
+                function () {
+                  annotationReleaseAllHover();
+                }
               )
             }
           }
