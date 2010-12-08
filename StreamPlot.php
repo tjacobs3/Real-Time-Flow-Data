@@ -246,6 +246,7 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 					create_graph($columns, $data, $showSimulated, $columnNum, $location, "chart2", "flow", 1, false);
 				}
 ?>
+        _mobileDevice = 0;
 			  displayAnnotations();
 			});
 		</script>

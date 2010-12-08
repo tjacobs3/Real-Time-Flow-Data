@@ -4,65 +4,73 @@ jQuery.fn.renderChart = function(attr) {
   i = charts.length;
   var chart = charts[i] = new Highcharts.Chart({
     chart: {
-		renderTo: $(this).attr('id'),
-		marginRight: 80,
-		zoomType: 'x',
-		defaultSeriesType: 'line'
+		  renderTo: $(this).attr('id'),
+  		marginRight: 80,
+  		zoomType: 'x',
+  		defaultSeriesType: 'line',
+  		events: {
+        selection: function (event) {
+          refreshAnnotations();
+        }
+      }
     },
-	subtitle: {
-		text: 'Click and drag in the plot area to zoom in'
-	},
-	xAxis: {
-		type: 'datetime',
-		maxZoom: 1 * 24 * 3600000, // fourteen days
-		title: {
-			text: null
-		}
-	},
-	tooltip: {
-		formatter: function() {
-			return ''+
-			Highcharts.dateFormat('%m-%d-%Y %H:%M', this.x) +
-			'<br/> Value: '+ Highcharts.numberFormat(this.y, 2) +'';
-		}
-	},
-	legend: {
-		enabled: true
-	},
-	plotOptions: {
-		spline: {
-			cursor: 'pointer',
-			marker: {
-				enabled: true,
-			},
-			linewidth: 1,
-			point: {
-				events: {
-					click: function (location, title, i) {
-					  return function() {
-  					  console.log(this);
-  						var reply = prompt("Enter annotation information here: ", "");
-  						if (reply != null && reply != "") {
-    						$.get("annotation.php", {
-    						  location: location,
-    						  chart_title: title,
-    						  series_name: this.series.name,
-    						  time: this.x,
-                  annotation: reply
-    						}, function (data) {
-    						  console.log(data);
-    						  location.reload();
-    						});
-    					}
-					  }
-					} (attr.location, attr.title.text)
-				}
-			}
-		}
-	},
-	yAxis: attr.yAxis,
-	title: attr.title,
-    series: attr.series
+	  subtitle: {
+  		text: 'Click and drag in the plot area to zoom in'
+  	},
+  	xAxis: {
+  		type: 'datetime',
+  		maxZoom: 1 * 24 * 3600000, // fourteen days
+  		title: {
+  			text: null
+  		}
+  	},
+  	tooltip: {
+  		formatter: function() {
+  			return ''+
+  			Highcharts.dateFormat('%m-%d-%Y %H:%M', this.x) +
+  			'<br/> Value: '+ Highcharts.numberFormat(this.y, 2) +'';
+  		}
+  	},
+  	legend: {
+  		enabled: true
+  	},
+  	plotOptions: {
+  		spline: {
+  			cursor: 'pointer',
+  			marker: {
+  				enabled: true,
+  			},
+  			linewidth: 1,
+  			point: {
+  				events: {
+  					click: function (location, title, i) {
+  					  return function() {
+  					    if (_mobileDevice) {
+                  return;
+                }
+    					  console.log(this);
+    						var reply = prompt("Enter annotation information here: ", "");
+    						if (reply != null && reply != "") {
+      						$.get("annotation.php", {
+      						  location: location,
+      						  chart_title: title,
+      						  series_name: this.series.name,
+      						  time: this.x,
+                    annotation: reply
+      						}, function (data) {
+      						  console.log(data);
+      						  refreshAnnotations();
+      						});
+      					}
+  					  }
+  					} (attr.location, attr.title.text)
+  				}
+  			}
+  		}
+  	},
+  	yAxis: attr.yAxis,
+  	title: attr.title,
+    series: attr.series  
   });
   chart.rinfo = {
     title: attr.title.text,
@@ -197,20 +205,24 @@ function addAnnotationToGraph(chart, series_no, timestamp, number) {
   posX = chart.plotLeft + chart.xAxis[0].translate(timestamp) - 10;
   posY = chart.plotTop + y - 40;
   
+  if (posX < chart.plotLeft || posX > chart.plotLeft + chart.plotWidth) {
+    return;
+  }
+  
   var group = chart.renderer.g('annotation').attr({zIndex: 100}).add();
   
   //rect: function (x, y, width, height, round-corners, stroke-width)
   chart.renderer.rect(posX, posY, 20, 20, 2, 1)
                 .attr({
                   fill: 'white',
-                  stroke: '#058DC7',
-                  strokeWidth: 2
+                  stroke: 'grey',
+                  strokeWidth: 1
                 })
                 .add(group);
   
-  chart.renderer.path(['M', posX + 10, posY + 20, 'V', element.plotY + chart.plotTop - 5])
+  chart.renderer.path(['M', posX + 10, posY + 20, 'V', element.plotY + chart.plotTop])
                 .attr({
-                  stroke: '#058DC7',
+                  stroke: 'grey',
                   strokeWidth: 1
                 })
                 .add(group);
@@ -220,13 +232,36 @@ function addAnnotationToGraph(chart, series_no, timestamp, number) {
   chart.annotation_groups.push(group);
 }
 
+function annotationExpand(id, g) {
+  annotationShrinkAll();
+  $($('#' + id + ' dl')[g]).addClass('highlighted').removeClass('compact');
+}
+
+function annotationShrinkAll() {
+  $('.annotation-list dl').removeClass('highlighted hover').addClass('compact');
+}
+
+function annotationHover(id, g) {
+  $('.annotation-list dl').removeClass('hover')
+  $($('#' + id + ' dl')[g]).addClass('hover');
+}
+
 function displayAnnotations () {
+  if (_mobileDevice)
+    return;
+  
   var c, s;
   var info, series;
+  
+  var annotation_container;
   
   for (c in charts) {
     info  = charts[c].rinfo;
     charts[c].annotation_groups = [];
+    
+    var annotation_container = $('<div></div>').attr('id', 'container_annotation' + (parseInt(c)+1)).addClass('container_annotation');
+    
+    $('#container_chart' + (parseInt(c)+1)).after(annotation_container);
     
     for (s in charts[c].series) {
       series = charts[c].series[s];
@@ -237,19 +272,36 @@ function displayAnnotations () {
           location    : info.location,
           chart_title : info.title,
           series_name : series.name
-        }, function (chart, series_no, id) {
+        }, function (chart, series_no, id, annotation_container) {
           return function (annotations) {
-            $('<div></div>').attr('id', id).addClass('annotation-list').appendTo("#annotations");
-            
+            var color = chart.series[series_no].color;
             var timestamp;
-            console.log(annotations);
             var n = 0;
             var time;
+            var a;
+            
+            console.log(annotations);
+            
+            var aldiv = 
+              $('<div></div>')
+                .attr('id', id)
+                .addClass('annotation-list')
+                .css('border-left', '3px solid ' + color)
+                .appendTo(annotation_container);
             
             for (timestamp in annotations) {
               time = new Date(parseInt(timestamp));
               addAnnotationToGraph(chart, series_no, timestamp, ++n);
-              $('#' + id).append('<dl><dt>' + n + '</dt><dd class="date">' + time.toLocaleString() + '</dd><dd class="annotation-text">' + annotations[timestamp] + '</dd></dl>');
+              
+              a = $('<dl class="compact"><dt>' + n + '</dt><dd class="date">' + time.toLocaleString() + '</dd><dd class="annotation-text">' + annotations[timestamp] + '</dd></dl>');
+              a.click(function (id, n) {
+                return function () {
+                  annotationExpand(id, n-1)
+                }
+              } (id, n));
+              
+              $('#' + id)
+                .append(a);
             }
             
             var g;
@@ -257,16 +309,43 @@ function displayAnnotations () {
               $(chart.annotation_groups[g].element).click(
                 function (g) {
                   return function () {
-                    $('#' + id + ' dl').removeClass('highlighted')
-                    $($('#' + id + ' dl')[g]).addClass('highlighted');
+                    annotationExpand(id, g);
+                  }
+                } (g)
+              ).hover(
+                function (g) {
+                  return function () {
+                    annotationHover(id, g);
                   }
                 } (g)
               )
             }
           }
-        } (charts[c], s, id)
+        } (charts[c], s, id, annotation_container)
       );
     }
   }
+}
+
+function destroyAnnotations (callback) {
+  var c, s, a;
+  var info, series;
+  
+  for (c in charts) {
+    a = charts[c].annotation_groups;
     
+    $(a).each(function (i, anno) {
+      $(anno.element).remove()
+      delete anno;
+    });
+  }
+  
+  $('.container_annotation').remove();
+      
+  if (typeof callback === 'function')
+    callback();
+}
+
+function refreshAnnotations () {
+  destroyAnnotations(displayAnnotations);
 }
