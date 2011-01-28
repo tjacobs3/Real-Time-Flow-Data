@@ -204,7 +204,7 @@ function create_graph ($columns, $data, $simData, $columnNum, $location, $varNam
 				{ 
 					foreach ($values as $key => $value) 
 					{
-						if($key == $simulatedType && ($i != NULL || $value != NULL)) plot_point($i, $value * $dataMultiplier);
+						if($key == $simulatedType && ($i != NULL || $value != NULL)) plot_point($i, $value * $dataMultiplier, array());
 					}
 				} 
 			?> ]} 
