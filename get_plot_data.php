@@ -77,7 +77,7 @@ function get_plot_data($location, $type)
 			$date = new DateTime($date_str);
 			//$chartData[$date_str] = $val[$columnNum];
 			$pointData = array();
-			$pointData["x"] = $date_str;
+			$pointData["x"] = $date->getTimestamp();
 			$pointData["y"] = $val[$columnNum];
 			$chartData[] = $pointData;
 			//$chartData["{x: ".$data_str.", y: ".$val[$columnNum]."}"
@@ -100,7 +100,8 @@ function get_simulated_plot_data($location, $type)
 			{
 				//$chartData[$i] = $value; //plot_point($i, $value * $dataMultiplier, array());
 				$pointData = array();
-				$pointData["x"] = $i;
+				$date = new DateTime($i);
+				$pointData["x"] = $date->getTimestamp();
 				$pointData["y"] = $value;
 				$chartData[] = $pointData;
 			}
