@@ -9,10 +9,23 @@ include 'simulationParser.php';
 date_default_timezone_set('America/Chicago'); 
 $titles = array("00065" => "Gage Height", "00060" => "Discharge", "00045" => "Precipitation");
 $file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=7&site_no=05531300");
+//$file;
+//$columns;
+//$data;
 $columns = getColumnNames($file);
 $data = getData($file);
 $simulatedFileLocation = "gate798.wsq";
+//$simulatedFileLocation = isset($_GET["simLocation"]) ? $_GET["simLocation"] : "Unspecified";
 $location = "U22";
+//$location = isset($_GET["location"]) ? $_GET["location"] : "Unspecified";
+
+function initData()
+{
+	global $file, $columns, $data, $location;
+	$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=7&site_no=".$location);
+	$columns = getColumnNames($file);
+	$data = getData($file);
+}
 
 //Parse given date based on Y-m-d H:i
 function formatDate($time)
@@ -26,7 +39,7 @@ function formatDate($time)
   $dateTime['day'] = $date[2];
   $dateTime['hour'] = $time[0];
   $dateTime['minute'] = $time[1];
-	return $dateTime;
+  return $dateTime;
 }
 
 function get_title()
@@ -62,7 +75,12 @@ function get_plot_data($location, $type)
 			//echo $year."-".($month)."-".$day." ".$hour.":".$minute."<br />";
 			$date_str = $year."-".($month)."-".$day." ".$hour.":".$minute;
 			$date = new DateTime($date_str);
-			$chartData[$date_str] = $val[$columnNum];
+			//$chartData[$date_str] = $val[$columnNum];
+			$pointData = array();
+			$pointData["x"] = $date_str;
+			$pointData["y"] = $val[$columnNum];
+			$chartData[] = $pointData;
+			//$chartData["{x: ".$data_str.", y: ".$val[$columnNum]."}"
 		}
 	}	
 	return $chartData;
@@ -78,7 +96,14 @@ function get_simulated_plot_data($location, $type)
 	{ 
 		foreach ($values as $key => $value) 
 		{
-			if($key == $type && ($i != NULL || $value != NULL)) $chartData[$i] = $value; //plot_point($i, $value * $dataMultiplier, array());
+			if($key == $type && ($i != NULL || $value != NULL))
+			{
+				//$chartData[$i] = $value; //plot_point($i, $value * $dataMultiplier, array());
+				$pointData = array();
+				$pointData["x"] = $i;
+				$pointData["y"] = $value;
+				$chartData[] = $pointData;
+			}
 		}
 	} 
 	return $chartData;
@@ -102,6 +127,8 @@ function get_column_num($title, $partial, $columns)
 	}
 	return $columnNum;
 }
+
+//initData();
 
 $chartData = array();
 $chartData["title"] = "U22" . " " . get_title();
