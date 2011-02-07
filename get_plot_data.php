@@ -6,7 +6,7 @@ header('Content-type: application/json');
 include 'realtimeParser.php';
 include 'simulationParser.php';
 
-date_default_timezone_set('CST'); 
+date_default_timezone_set('America/Chicago); 
 $titles = array("00065" => "Gage Height", "00060" => "Discharge", "00045" => "Precipitation");
 $file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=7&site_no=05531300");
 $columns = getColumnNames($file);
