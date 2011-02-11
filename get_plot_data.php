@@ -5,24 +5,30 @@ header('Content-type: application/json');
 
 include 'realtimeParser.php';
 include 'simulationParser.php';
+include 'site_no.php';
 
 date_default_timezone_set('America/Chicago'); 
 $titles = array("00065" => "Gage Height", "00060" => "Discharge", "00045" => "Precipitation");
-$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=7&site_no=05531300");
-//$file;
-//$columns;
-//$data;
-$columns = getColumnNames($file);
-$data = getData($file);
-$simulatedFileLocation = "gate798.wsq";
-//$simulatedFileLocation = isset($_GET["simLocation"]) ? $_GET["simLocation"] : "Unspecified";
-$location = "U22";
-//$location = isset($_GET["location"]) ? $_GET["location"] : "Unspecified";
+//$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=7&site_no=05531300");
+$file;
+$columns;
+$data;
+//$columns = getColumnNames($file);
+//$data = getData($file);
+//$simulatedFileLocation = "gate798.wsq";
+$simulatedFileLocation = isset($_GET["simLocation"]) ? $_GET["simLocation"] : "gate798.wsq";
+//$location = "U22";
+$location = isset($_GET["location"]) ? $_GET["location"] : "U22";
+$timePeriod = isset($_GET["period"]) ? $_GET["period"] : "7";
+$chartType = isset($_GET["chartType"]) ? $_GET["chartType"] : "elevation";  // Can be "elevation" or "discharge"
+$dataType = isset($_GET["dataType"]) ? $_GET["dataType"] : "both"; // Can be "real" or "simulated" or "both"
+$precip = isset($_GET["includePrecip"]) ? $_GET["includePrecip"] : "false";
 
 function initData()
 {
-	global $file, $columns, $data, $location;
-	$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=7&site_no=".$location);
+	global $file, $columns, $data, $location, $timePeriod;
+	$site_num = site_name_to_number($location);
+	$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=".$timePeriod."&site_no=".$site_num);
 	$columns = getColumnNames($file);
 	$data = getData($file);
 }
@@ -44,20 +50,20 @@ function formatDate($time)
 
 function get_title()
 {
-	global $titles, $columns;
-	$columnNum = get_column_num("00065", true, $columns);
+	global $titles, $columns, $chartType;
+	$typeNum = ($chartType == "elevation") ? "00065" : "00060";
+	$columnNum = get_column_num($typeNum, true, $columns);
 	$columnName = explode("_", $columns[$columnNum]);
 	$columnName = $titles[$columnName[1]];
 	return $columnName;
 }
 
-function get_plot_data($location, $type)
+function get_plot_data($typeNum)
 {
 	global $file, $columns, $data;
 
 	$chartData = array();
-	
-	$columnNum = get_column_num("00065", true, $columns);
+	$columnNum = get_column_num($typeNum, true, $columns);
 	$timeColumn = get_column_num("datetime", false, $columns);
 	$chartData = array();
 	
@@ -129,15 +135,18 @@ function get_column_num($title, $partial, $columns)
 	return $columnNum;
 }
 
-//initData();
+initData();
 
 $chartData = array();
-$chartData["title"] = "U22" . " " . get_title();
-$chartData["location"] = "U22";
+$chartData["title"] = $location . " " . get_title();
+$chartData["location"] = $location;
 $chartData["series"] = array();
 
-$chartData["series"]["Observed Data"]  = get_plot_data(" ", " ");
-$chartData["series"]["Simulated Data"]  = get_simulated_plot_data("U22", "flow"); 
+$typeNum = ($chartType == "elevation") ? "00065" : "00060";
+if($dataType == "real" || $dataType == "both") $chartData["series"]["Observed Data"] = get_plot_data($typeNum);
+$typeSimName = ($chartType == "elevation") ? "elevation" : "flow";
+if($dataType == "simulated" || $dataType == "both") $chartData["series"]["Simulated Data"] = get_simulated_plot_data($location, $typeSimName); 
+if($precip == "true") $chartData["series"]["Precipitation"] = $chartData["series"]["Precipitation"] = get_plot_data("00045");
  
 echo json_encode($chartData);
 ?>
