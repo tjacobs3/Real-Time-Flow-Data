@@ -117,7 +117,7 @@
         }
       }
       
-      rsfd.data.getData = function (p, callbackFunc) {
+      rsfd.data.getRealData = function (p, callbackFunc) {
         if (typeof callbackFunc !== 'function')
           return false;
          
@@ -125,6 +125,15 @@
         
         return true;
       };
+      
+      rsfd.data.getSimulatedData = function (p, callbackFunc) {
+        if (typeof callbackFunc !== 'function')
+          return false;
+          
+        $.getJSON('get_simulation_data.php', p, callbackFunc);
+        
+        return true;
+      }
       
       rsfd.chart.Chart = function (container, title, location, id) {
         if (typeof id !== 'string') {
@@ -155,21 +164,23 @@
           },
           series: []
         });
+        
+        this.series = {};
       }
       
       rsfd.chart.Chart.prototype.displayData = function (data) {
-        for (var s in this.chart.series) {
-          this.chart.series[s].remove();
-        }
-        
-        this.chart.redraw();
-        
-        for (var type in data.series) {          
-          this.chart.addSeries({
+        for (var type in data.series) { 
+          
+          if (type in this.series) {
+            this.series[type].remove();
+          }
+          
+          this.series[type] = this.chart.addSeries({
             type: 'spline',
             name: type,
             data: data.series[type],
           });
+          
         }
       }
       
@@ -187,7 +198,13 @@
         for (var chart_type in this.charts) {
           var chart = this.charts[chart_type];
           p.chartType = chart_type;
-          rsfd.data.getData(p, function (c) {
+          rsfd.data.getRealData(p, function (c) {
+            return function (data) {
+              c.displayData(data);
+            }
+          } (chart));
+          
+          rsfd.data.getSimulatedData(p, function (c) {
             return function (data) {
               c.displayData(data);
             }

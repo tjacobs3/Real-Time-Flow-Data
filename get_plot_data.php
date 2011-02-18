@@ -21,7 +21,7 @@ $simulatedFileLocation = isset($_GET["simLocation"]) ? $_GET["simLocation"] : "g
 $location = isset($_GET["location"]) ? $_GET["location"] : "U22";
 $timePeriod = isset($_GET["period"]) ? $_GET["period"] : "7";
 $chartType = isset($_GET["chartType"]) ? $_GET["chartType"] : "elevation";  // Can be "elevation" or "discharge"
-$dataType = isset($_GET["dataType"]) ? $_GET["dataType"] : "both"; // Can be "real" or "simulated" or "both"
+$dataType = isset($_GET["dataType"]) ? $_GET["dataType"] : "real"; // Can be "real" or "simulated" or "both"
 $precip = isset($_GET["includePrecip"]) ? $_GET["includePrecip"] : "false";
 
 function initData()
