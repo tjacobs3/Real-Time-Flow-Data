@@ -1,0 +1,207 @@
+<!doctype html>
+
+<html>
+  <head>
+    <style type="text/css" media="screen">
+      html, body {
+        margin: 0;
+      }
+      
+      body {
+        background: #eee;
+      }
+      
+      #container {
+        background: white;
+        border: 1px solid #ccc;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+        margin: 1em auto;
+        min-height: 500px;
+        padding: 0 1em;
+        width: 950px;
+      }
+      
+      #header {
+        border-bottom: 1px solid #999;
+      }
+      
+      .prompt {
+        font-style: italic;
+        margin: 1em auto;
+        padding: 1em;
+        text-align: center;
+        width: 300px;
+      }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="js/highcharts.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <div id="container">
+      <div id="header">
+        <h1>Real-time Stream Flow Data</h1>
+      </div>
+      <div id="content">
+        <div id="filter">
+          <form>
+            <div id="location-time-type">
+              <span>
+                Location:
+                <select name="location" id="location">
+                  <option value="U22">U22</option>
+                </select>
+              </span>
+              <span>
+                <label for="period">Period</label><input type="text" name="period" value="7" id="period">
+              </span>
+              <!-- <span id="data-type">
+                              Data Type:
+                              <input type="radio" name="data-type" value="real" id="data-type-observed"><label for="data-type-real">Observed Data</label>
+                              <input type="radio" name="data-type" value="simulated" id="data-type-simulated"><label for="data-type-simulated">Simulated Data</label>
+                              <input type="radio" name="data-type" value="both" id="data-type-real" checked="checked"><label for="data-type-both">Both</label>
+                            </span> -->
+              <span>
+                <a id="refresh-button">Refresh</a>
+              </span>
+            </div>
+          </form>
+        </div>
+        <div id="main-content">
+          <div id="loading" class="prompt">
+            Loading...
+          </div>
+          <div id="select-prompt" class="prompt">
+            Please set up.
+          </div>
+        </div>
+      </div>
+      <div id="footer">
+      </div>
+    </div>
+    
+    <script type="text/javascript" charset="utf-8">
+      var rsfd = rsfd || {};
+      rsfd.ui = rsfd.ui || {};
+      rsfd.data = rsfd.data || {};
+      rsfd.chart = rsfd.chart || {};
+      rsfd.controller = rsfd.controller || {};
+      
+      rsfd.ui.showLoading = function () {
+        $('#main-content>div').hide();
+        $('#main-content #loading').show();
+      }
+      
+      rsfd.ui.showSelectPrompt = function () {
+        $('#main-content>div').hide();
+        $('#main-content #select-prompt').show();
+      }
+      
+      rsfd.ui.getLocation = function () {
+        return $("#location option:selected").val()
+      }
+      
+      rsfd.ui.getPeriod = function () {
+        return parseInt($("#period").val());
+      }
+      
+      rsfd.ui.getDataType = function () {
+        return "both";
+        return $("#data-type input[name='data-type']:checked").val();
+      }
+      
+      rsfd.ui.getAllParameter = function () {
+        return {
+          location: rsfd.ui.getLocation(),
+          period: rsfd.ui.getPeriod(),
+          data_type: rsfd.ui.getDataType()
+        }
+      }
+      
+      rsfd.data.getData = function (p, callbackFunc) {
+        if (typeof callbackFunc !== 'function')
+          return false;
+         
+        $.getJSON('get_plot_data.php', p, callbackFunc);
+        
+        return true;
+      };
+      
+      rsfd.chart.Chart = function (container, title, location, id) {
+        if (typeof id !== 'string') {
+          id = container + '_chart';
+        }
+        
+        this.container = container;
+        this.title = title;
+        this.location = location
+        this.id = id;
+        
+        this.chart = new Highcharts.Chart({
+          chart: {
+            renderTo: container
+          },
+          title: {
+            text: this.title
+          },
+          location: {
+            text: this.location
+          },
+          series: []
+        });
+      }
+      
+      rsfd.chart.Chart.prototype.displayData = function (data) {
+        for (var s in this.chart.series) {
+          this.chart.series[s].remove();
+        }
+        
+        this.chart.redraw();
+        
+        for (var type in data.series) {          
+          this.chart.addSeries({
+            type: 'spline',
+            name: type,
+            data: data.series[type],
+          });
+        }
+      }
+      
+      rsfd.controller.Controller = function () {
+        this.charts = {};
+      }
+      
+      rsfd.controller.Controller.prototype.registerChart = function (type, chart) {
+        this.charts[type] = chart;
+      }
+      
+      rsfd.controller.Controller.prototype.showData = function() {
+        var p = rsfd.ui.getAllParameter();
+        
+        for (var chart_type in this.charts) {
+          var chart = this.charts[chart_type];
+          p.chartType = chart_type;
+          rsfd.data.getData(p, function (c) {
+            return function (data) {
+              c.displayData(data);
+            }
+          } (chart));
+        }
+      }
+      
+      $(document).ready(function () {
+        rsfd.ui.showSelectPrompt();
+        $('#main-content').append($('<div id="elevation"></div>'));
+        $('#main-content').append($('<div id="discharge"></div>'));        
+        var elevation_chart = new rsfd.chart.Chart("elevation", rsfd.ui.getLocation() + " Gage Height", rsfd.ui.getLocation());
+        var discharge_chart = new rsfd.chart.Chart("discharge", rsfd.ui.getLocation() + " Discharge", rsfd.ui.getLocation());
+        controller = new rsfd.controller.Controller();
+        controller.registerChart("elevation", elevation_chart);
+        controller.registerChart("discharge", discharge_chart);
+        controller.showData();
+        $('#refresh-button').click(function () {
+          controller.showData();
+        });
+      })
+    </script>
+  </body>
+</html>
