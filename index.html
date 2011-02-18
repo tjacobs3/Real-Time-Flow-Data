@@ -146,6 +146,13 @@
           location: {
             text: this.location
           },
+          xAxis: {
+            labels: {
+              formatter: function () {
+                return Date(this.value);
+              }
+            }
+          },
           series: []
         });
       }
