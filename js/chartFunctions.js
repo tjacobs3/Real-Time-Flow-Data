@@ -14,12 +14,12 @@ jQuery.fn.renderChart = function(attr) {
         }
       }
     },
-	  subtitle: {
+	subtitle: {
   		text: 'Click and drag in the plot area to zoom in'
   	},
   	xAxis: {
   		type: 'datetime',
-  		maxZoom: 1 * 24 * 3600000, // fourteen days
+  		maxZoom: 24 * 3600 * 1000, // One hour
   		title: {
   			text: null
   		}

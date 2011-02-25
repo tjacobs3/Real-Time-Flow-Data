@@ -147,6 +147,7 @@
         
         this.chart = new Highcharts.Chart({
           chart: {
+			//zoomType: 'x',
             renderTo: container
           },
           title: {
@@ -155,12 +156,21 @@
           location: {
             text: this.location
           },
+		  plotOptions: {
+			series: {
+				marker: {
+					enabled: false,
+					states: {
+						hover: {
+							enabled: true
+						}
+					}
+				}
+			}
+		  },
           xAxis: {
-            labels: {
-              formatter: function () {
-                return Date(this.value);
-              }
-            }
+			//maxZoom: 1 * 24 * 3600000, // fourteen days
+            type: 'datetime'
           },
           series: []
         });
@@ -170,7 +180,6 @@
       
       rsfd.chart.Chart.prototype.displayData = function (data) {
         for (var type in data.series) { 
-          
           if (type in this.series) {
             this.series[type].remove();
           }
