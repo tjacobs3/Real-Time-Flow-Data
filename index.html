@@ -18,7 +18,17 @@
         margin: 1em auto;
         min-height: 500px;
         padding: 0 1em;
+        position: relative;
         width: 950px;
+      }
+      
+      #container .chart_prompt {
+        left: 0;
+        margin: auto;
+        position: absolute;
+        right: 0;
+        top: 20px;
+        width: 300px;
       }
       
       #header {
@@ -73,6 +83,9 @@
           <div id="select-prompt" class="prompt">
             Please set up.
           </div>
+          <div id="elevation"></div>
+          <hr />
+          <div id="discharge"></div>
         </div>
       </div>
       <div id="footer">
@@ -126,11 +139,20 @@
         return true;
       };
       
-      rsfd.data.getSimulatedData = function (p, callbackFunc) {
+      rsfd.data.getSimulatedData = function (p, simfile, callbackFunc) {
         if (typeof callbackFunc !== 'function')
           return false;
           
-        $.getJSON('get_simulation_data.php', p, callbackFunc);
+        p2 = {};
+        
+        for (var prop in p) {
+          p2[prop] = p[prop];
+        }
+        
+        if (typeof simfile === "string" && simfile !== '')
+          p2.simLocation = simfile;
+          
+        $.getJSON('get_simulation_data.php', p2, callbackFunc);
         
         return true;
       }
@@ -142,8 +164,9 @@
         
         this.container = container;
         this.title = title;
-        this.location = location
+        this.location = location;
         this.id = id;
+        this.loading = 0;
         
         this.chart = new Highcharts.Chart({
           chart: {
@@ -155,17 +178,27 @@
           location: {
             text: this.location
           },
-          xAxis: {
-            labels: {
-              formatter: function () {
-                return Date(this.value);
-              }
+          tooltip: {
+            formatter: function () {
+              return "Date: " + this.x + "<br />" + "Value: " + this.y;
+              console.log(this.x);
             }
+          },
+          xAxis: {
+            type: 'datetime'
           },
           series: []
         });
         
         this.series = {};
+        
+        var con = $('#' + this.container);
+        var prompt = 
+          $('<div></div>')
+            .attr('id', id + '_prompt')
+            .addClass('chart_prompt')
+            .hide()
+            .appendTo(con);
       }
       
       rsfd.chart.Chart.prototype.displayData = function (data) {
@@ -179,9 +212,18 @@
             type: 'spline',
             name: type,
             data: data.series[type],
+            pointStart: Date(0)
           });
           
         }
+      }
+      
+      rsfd.chart.Chart.prototype.showPrompt = function (id, content) {
+        
+      }
+      
+      rsfd.chart.Chart.prototype.hidePrompt = function (id, content) {
+        
       }
       
       rsfd.controller.Controller = function () {
@@ -204,18 +246,24 @@
             }
           } (chart));
           
-          rsfd.data.getSimulatedData(p, function (c) {
+          rsfd.data.getSimulatedData(p, '', function (c) {
             return function (data) {
               c.displayData(data);
             }
+            
+            rsfd.data.getSimulatedData(p, 'ld2g1.2011.wsq', function (c) {
+              return function (data) {
+                c.displayData(data);
+              }
+            } (c));
           } (chart));
+
+
         }
       }
       
       $(document).ready(function () {
-        rsfd.ui.showSelectPrompt();
-        $('#main-content').append($('<div id="elevation"></div>'));
-        $('#main-content').append($('<div id="discharge"></div>'));        
+        //rsfd.ui.showSelectPrompt();    
         var elevation_chart = new rsfd.chart.Chart("elevation", rsfd.ui.getLocation() + " Gage Height", rsfd.ui.getLocation());
         var discharge_chart = new rsfd.chart.Chart("discharge", rsfd.ui.getLocation() + " Discharge", rsfd.ui.getLocation());
         controller = new rsfd.controller.Controller();
