@@ -62,7 +62,7 @@ function get_simulated_plot_data($location, $type)
 				//$chartData[$i] = $value; //plot_point($i, $value * $dataMultiplier, array());
 				$pointData = array();
 				$date = new DateTime($i);
-				$pointData["x"] = $date->getTimestamp();
+				$pointData["x"] = $date->getTimestamp() * 1000;
 				$pointData["y"] = (float) $value;
 				$chartData[] = $pointData;
 			}

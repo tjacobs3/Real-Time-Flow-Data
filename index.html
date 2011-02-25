@@ -77,12 +77,6 @@
           </form>
         </div>
         <div id="main-content">
-          <div id="loading" class="prompt">
-            Loading...
-          </div>
-          <div id="select-prompt" class="prompt">
-            Please set up.
-          </div>
           <div id="elevation"></div>
           <hr />
           <div id="discharge"></div>
@@ -170,6 +164,7 @@
         
         this.chart = new Highcharts.Chart({
           chart: {
+			      zoomType: 'x',
             renderTo: container
           },
           title: {
@@ -178,14 +173,33 @@
           location: {
             text: this.location
           },
+    		  plotOptions: {
+      			series: {
+      				marker: {
+      					enabled: false,
+      					states: {
+      						hover: {
+      							enabled: true
+      						}
+      					}
+      				}
+      			}
+    		  },
           tooltip: {
             formatter: function () {
-              return "Date: " + this.x + "<br />" + "Value: " + this.y;
-              console.log(this.x);
+              return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + this.y;
             }
           },
           xAxis: {
-            type: 'datetime'
+            type: 'datetime',
+            dateTimeLabelFormats: {
+              second: "%H:%M:%S, %b %d, %Y",
+              minute: "%H:%M, %b %d, %Y",
+              hour: "%H:%M:%S, %b %d, %Y",
+              day: "%b %d, %Y",
+              week: "%b %d, %Y",
+              month: "%b, %Y",
+            }
           },
           series: []
         });
@@ -203,7 +217,6 @@
       
       rsfd.chart.Chart.prototype.displayData = function (data) {
         for (var type in data.series) { 
-          
           if (type in this.series) {
             this.series[type].remove();
           }
@@ -217,6 +230,7 @@
           
         }
       }
+      
       
       rsfd.chart.Chart.prototype.showPrompt = function (id, content) {
         
@@ -250,15 +264,13 @@
             return function (data) {
               c.displayData(data);
             }
-            
-            rsfd.data.getSimulatedData(p, 'ld2g1.2011.wsq', function (c) {
-              return function (data) {
-                c.displayData(data);
-              }
-            } (c));
           } (chart));
 
-
+          rsfd.data.getSimulatedData(p, 'ld2g1.2011.wsq', function (c) {
+            return function (data) {
+              c.displayData(data);
+            }
+          } (chart));
         }
       }
       
