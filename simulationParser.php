@@ -3,6 +3,7 @@
 	//Global arrays to hold location names and all data related to them
 	$locations = Array();
 	$data = Array();
+	$range;
 
 	//Remove invalid entries from the location names
 	//removes blank entries from the array
@@ -25,6 +26,7 @@
 	{
 		global $locations;
 		global $data;
+		global $range;
 		$delimiter = "/[\s]+/ ";
 		$contents = preg_split($delimiter, $line);
 		
@@ -56,6 +58,12 @@
 				case 3:	$hour = $contents[$counter];
 					$hour = explode(".", $hour);
 					$dateTime = $year.'-'.$month.'-'.$day.' '.$hour[0].':'.($hours[1]*.6) ;
+					$tmpDate = strtotime($dateTime); 
+					$today = strtotime (date("Y-m-d"));
+					if($today - $tmpDate > $range) 
+					{
+						return false;
+					}
 					break;
 
 				
@@ -74,6 +82,7 @@
 				$counter++;
 			}
 		}
+		return true;
 	}
 
 	//Returns the data based on the location passed in
@@ -101,8 +110,11 @@
 	}
 
 	//Parses a given Simulated data flat file according to a fixed file format
-	function parseFile($fileLocation)
+	function parseFile($fileLocation, $timePeriod)
 	{
+		//Set the range
+		global $range;	
+		$range = $timePeriod* 86400;
 		//Open the simulated output file
 		$filename = $fileLocation;
 		$fd = fopen ($filename, "r");
@@ -115,23 +127,28 @@
 		$splitcontents = explode($delimiter, $contents);
 
 		//Keep track when to start parsing the data
-		$startCounter = 0;
+		$startCounter = count($splitcontents);
 		$time;
 		$flowVal;
 		$elevVal;
 
+		parseNames($splitcontents[1]);
 		//Go through file and parse each line
-		foreach($splitcontents as $val)
+		for($i = $startCounter; $i >= 0; $i--)
 		{
 			//If line = 1 then get all names
-			if($startCounter == 1) {parseNames($val);}
+			//if($startCounter == 1) {parseNames($val);}
 				
 			//Start parsing the line if startCounter >= 3
 			if($startCounter >= 3)
 			{
-				parseLine($val);
+				if(!empty($splitcontents[$i]))
+				{
+					if(parseLine($splitcontents[$i]) == false)
+						break;
+				}
 			}
-			$startCounter += 1;
+			$startCounter -= 1;
 		}
 
 	}

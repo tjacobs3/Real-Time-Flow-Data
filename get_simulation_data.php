@@ -51,7 +51,8 @@ function get_simulated_plot_data($location, $type)
 {
 	$chartData = array();
 	global $simulatedFileLocation;	
-	parseFile($simulatedFileLocation);
+	global $timePeriod;
+	parseFile($simulatedFileLocation, $timePeriod);
 	$x = getSimulationData($location);
 	foreach ($x as $i => $values) 
 	{ 
