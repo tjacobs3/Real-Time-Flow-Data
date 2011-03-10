@@ -150,8 +150,9 @@ rsfd.chart.Chart.prototype.showPrompt = function (content) {
   
   var p_id = ++this.prompt_count;
   this.prompts[p_id] = 
-    $('<li></li>').text(content).appendTo(this.prompt_list);
-  this.prompt_window.fadeIn();
+    $('<li></li>').text(content)
+  this.prompt_list.append(this.prompts[p_id]);
+  this.prompt_window.slideDown();
   return p_id;
 }
 
@@ -159,8 +160,10 @@ rsfd.chart.Chart.prototype.hidePrompt = function (id) {
   if (typeof this.prompts[id] === 'undefined')
     return;
     
-  this.prompts[id].fadeOut().remove();
-  delete this.prompts[id];
+  this.prompts[id].slideUp(function() {
+    $(this).remove();
+    delete this;
+  });
   this.prompt_count--;
 
   if (this.prompt_count === 0)
