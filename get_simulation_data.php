@@ -54,18 +54,21 @@ function get_simulated_plot_data($location, $type)
 	global $timePeriod;
 	parseFile($simulatedFileLocation, $timePeriod);
 	$x = getSimulationData($location);
-	foreach ($x as $i => $values) 
-	{ 
-		foreach ($values as $key => $value) 
-		{
-			if($key == $type && ($i != NULL || $value != NULL))
+	if(!empty($x))
+	{
+		foreach ($x as $i => $values) 
+		{ 
+			foreach ($values as $key => $value) 
 			{
-				//$chartData[$i] = $value; //plot_point($i, $value * $dataMultiplier, array());
-				$pointData = array();
-				$date = new DateTime($i);
-				$pointData["x"] = $date->getTimestamp() * 1000;
-				$pointData["y"] = (float) $value;
-				$chartData[] = $pointData;
+				if($key == $type && ($i != NULL || $value != NULL))
+				{
+					//$chartData[$i] = $value; //plot_point($i, $value * $dataMultiplier, array());
+					$pointData = array();
+					$date = new DateTime($i);
+					$pointData["x"] = $date->getTimestamp() * 1000;
+					$pointData["y"] = (float) $value;
+					$chartData[] = $pointData;
+				}
 			}
 		}
 	}
