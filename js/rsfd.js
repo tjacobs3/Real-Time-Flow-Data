@@ -101,6 +101,18 @@ rsfd.data.getAnnotation = function (p, seriesName, callbackFunc) {
   $.getJSON('get_annotation.php', p2, callbackFunc);
 }
 
+rsfd.data.addAnnotation = function (annotation, callbackFunc) {
+  $.getJSON('add_annotation.php', 
+    {
+      location: annotation.location,
+      chartType: annotation.chartType,
+      seriesName: annotation.seriesName,
+      timestamp: annotation.timestamp,
+      content: annotation.content
+    }, 
+    callbackFunc);
+}
+
 rsfd.Chart = function (container, title, location, chartType, id) {
   if (typeof id !== 'string') {
     id = container + '_chart';
@@ -132,8 +144,20 @@ rsfd.Chart = function (container, title, location, chartType, id) {
               enabled: true
             }
           }
+        },
+        point: {
+          events: {
+            click: function(that) {
+              return function() {
+    						var content = window.prompt("Enter annotation information here: ", "");
+    						if (content != null && content != "") {
+    						  that.userAddAnnotation(this.series.name, this.x, content);
+    						}
+              }
+            } (this)
+          }
         }
-      }
+      }      
     },
     tooltip: {
       formatter: function () {
@@ -197,10 +221,19 @@ rsfd.Chart.prototype.displayData = function (data) {
 rsfd.Chart.prototype.displayAnnotation = function (data) {
   var i, anno;
   for (i in data) {
-    anno = new rsfd.Annotation(this.annotations.length+1, data[i].location, data[i].seriesName,
-                                parseInt(data[i].timestamp), data[i].content);
+    anno = new rsfd.Annotation(this.annotations.length+1, data[i].location, this.type, 
+                                data[i].seriesName, parseInt(data[i].timestamp), data[i].content);
     this.addAnnotation(anno);
   }
+}
+
+rsfd.Chart.prototype.userAddAnnotation = function (seriesName, timestamp, content) {
+  anno = new rsfd.Annotation(this.annotations.length+1, this.location, this.type, seriesName, timestamp, content);
+  rsfd.data.addAnnotation(anno, function (that, a) {
+    return function () {
+      that.addAnnotation(a);
+    }
+  } (this, anno));
 }
 
 rsfd.Chart.prototype.showPrompt = function (content) {
@@ -315,7 +348,9 @@ rsfd.Chart.prototype.addAnnotationToChart = function (annotation) {
 }
 
 rsfd.Chart.prototype.addAnnotationToList = function (annotation) {
-  annotation.inList = $("<li></li>");
+  annotation.inList = 
+    $("<li></li>")
+      .attr('class', 'annotation_' + annotation.id);
   $("<div></div>")
     .attr('class', 'annotation_id')
     .text(annotation.id)
@@ -345,11 +380,13 @@ rsfd.Chart.prototype.clearAnnotation = function (annotation) {
   for (var i in this.annotations) {
     this.removeAnnotation(this.annotations[i]);
   }
+  this.annotations.length = 0;
 }
 
-rsfd.Annotation = function (id, location, seriesName, timestamp, content) {
+rsfd.Annotation = function (id, location, chartType, seriesName, timestamp, content) {
   this.id = id;
   this.location = location;
+  this.chartType = chartType;
   this.seriesName = seriesName;
   this.timestamp = timestamp;
   this.content = content;
@@ -373,8 +410,8 @@ rsfd.Controller.prototype.registerChart = function (type, chart) {
 rsfd.Controller.prototype.shiftValues = function (chartName, seriesName, amount) {
   if (typeof this.charts[chartName] !== "undefined")
   {
-	this.charts[chartName].shiftValues(seriesName, amount)
-	this.charts[chartName].chart.redraw();
+	  this.charts[chartName].shiftValues(seriesName, amount)
+	  this.charts[chartName].chart.redraw();
   }
 }
 
@@ -423,10 +460,10 @@ rsfd.Controller.prototype.showData = function() {
     
     this.showObservedData(chart, p);
     
-	for (var i = 0; i < simulatedNames.length; i++)
-	{
-		this.showSimulatedData(chart, p, simulatedNames[i]);
-	}
+	  for (var i = 0; i < simulatedNames.length; i++)
+	  {
+		  this.showSimulatedData(chart, p, simulatedNames[i]);
+	  }
   }
 }
 
