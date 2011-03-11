@@ -230,7 +230,7 @@ rsfd.Chart.prototype.hidePrompt = function (id) {
   });
 }
 
-rsfd.chart.Chart.prototype.shiftValues = function (seriesName, amount) { 
+rsfd.Chart.prototype.shiftValues = function (seriesName, amount) { 
   if(seriesName === "simulated")
   {
 	for(sNames in this.series)
@@ -370,7 +370,7 @@ rsfd.Controller.prototype.registerChart = function (type, chart) {
   this.charts[type] = chart;
 }
 
-rsfd.controller.Controller.prototype.shiftValues = function (chartName, seriesName, amount) {
+rsfd.Controller.prototype.shiftValues = function (chartName, seriesName, amount) {
   if (typeof this.charts[chartName] !== "undefined")
   {
 	this.charts[chartName].shiftValues(seriesName, amount)
