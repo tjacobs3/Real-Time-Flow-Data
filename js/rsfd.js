@@ -35,6 +35,33 @@ rsfd.ui.getAllParameter = function () {
   }
 }
 
+rsfd.ui.addSimulatedFileInput = function () {
+	if(!rsfd.ui.simCount) rsfd.ui.simCount = 2;
+	$("#simulated_files_container").append("<label for=\"simulated_file_" + rsfd.ui.simCount + "\">FEQ File " + rsfd.ui.simCount + ": </label><input type=\"text\" name=\"simulated_file_" + rsfd.ui.simCount + "\" value=\"\" id=\"simulated_file_" + rsfd.ui.simCount + "\"><br />");
+	rsfd.ui.simCount++;
+}
+
+rsfd.ui.getSimulatedFileNames = function () {
+	if(!rsfd.ui.simCount) rsfd.ui.simCount = 2;
+	var fileNames = new Array();
+	for(var i = 1; i < rsfd.ui.simCount; i++)
+	{
+		fileNames[i-1] = $("#simulated_file_" + i).val();
+	}
+	return fileNames;
+}
+
+rsfd.ui.setFileNames = function () {
+	$.getJSON("get_simulationfile_names.php",
+	function(data) {
+		for(var i = 0; i < data.length; i++)
+		{
+			if(i > 0) rsfd.ui.addSimulatedFileInput();
+			$("#simulated_file_" + (i+1)).val(data[i]);
+		}
+  });
+}
+
 rsfd.data.getRealData = function (p, callbackFunc) {
   if (typeof callbackFunc !== 'function')
     return false;
@@ -203,17 +230,28 @@ rsfd.Chart.prototype.hidePrompt = function (id) {
   });
 }
 
-rsfd.Chart.prototype.shiftValues = function (seriesName, amount) {
-  if (typeof this.series[seriesName] === "undefined")
-    return;
-  
-  var data = this.series[seriesName].data;
-  
-  for (var point in data) {
-    data[point].update(data[point].y += amount, false, false);
+rsfd.chart.Chart.prototype.shiftValues = function (seriesName, amount) { 
+  if(seriesName === "simulated")
+  {
+	for(sNames in this.series)
+	{
+		if(sNames === "Observed Data") continue;
+		var data = this.series[sNames].data;
+		for (var point in data) {
+			data[point].update(data[point].y -= amount, false, false);
+		}
+		//this.redraw();
+	}
   }
-  
-  this.redraw();
+  else if (typeof this.series[seriesName] === "undefined")
+    return;
+  else {
+	  var data = this.series[seriesName].data;
+	  for (var point in data) {
+		data[point].update(data[point].y += amount, false, false);
+	  }
+	  this.redraw();
+  }
 }
 
 rsfd.Chart.prototype.getElementByX = function (seriesName, x) {
@@ -332,8 +370,12 @@ rsfd.Controller.prototype.registerChart = function (type, chart) {
   this.charts[type] = chart;
 }
 
-rsfd.Controller.prototype.shiftValues = function (chartName, seriesName, amount) {
- return (typeof this.charts[chartName] !== "undefined") && this.charts[chartName].shiftValues();
+rsfd.controller.Controller.prototype.shiftValues = function (chartName, seriesName, amount) {
+  if (typeof this.charts[chartName] !== "undefined")
+  {
+	this.charts[chartName].shiftValues(seriesName, amount)
+	this.charts[chartName].chart.redraw();
+  }
 }
 
 rsfd.Controller.prototype.showObservedData = function (chart, parameters) {
@@ -375,13 +417,16 @@ rsfd.Controller.prototype.showAnnotation = function (chart, parameters, seriesNa
 rsfd.Controller.prototype.showData = function() {
   var p = rsfd.ui.getAllParameter();
   var chart, prompt_id;
-  
+  var simulatedNames = rsfd.ui.getSimulatedFileNames();
   for (var chart_type in this.charts) {
     chart = this.charts[chart_type];
-        
-    this.showObservedData(chart, p);    
-    this.showSimulatedData(chart, p, '');
-    this.showSimulatedData(chart, p, 'ld2g1.2011.wsq');
+    
+    this.showObservedData(chart, p);
+    
+	for (var i = 0; i < simulatedNames.length; i++)
+	{
+		this.showSimulatedData(chart, p, simulatedNames[i]);
+	}
   }
 }
 
@@ -392,11 +437,18 @@ $(document).ready(function () {
   controller = new rsfd.Controller();
   controller.registerChart("elevation", elevation_chart);
   controller.registerChart("discharge", discharge_chart);
+  rsfd.ui.setFileNames();
   controller.showData();
   $('#refresh-button').click(function () {
     controller.showData();
   });
   $("#elevation_shift_control_button").click(function () {
-    controller.shiftValues('elevation', 'Observed Data', parseInt($('#elevation_shift_control').val()));
+    controller.shiftValues('elevation', 'simulated', parseInt($('#elevation_shift_control').val()));
   });
+  $("#add_simulated_file_button").click(function () {
+    rsfd.ui.addSimulatedFileInput();
+  });  
+  $("#add_sim_data_to_chart_button").click(function () {
+    controller.showData();
+  });  
 })
