@@ -62,6 +62,14 @@ rsfd.ui.setFileNames = function () {
   });
 }
 
+rsfd.ui.setOffset = function () {
+	$.getJSON("get_site_offset.php",{location: rsfd.ui.getLocation()},
+	function(data)
+	{
+		$('#elevation_shift_control').val(data);
+	});
+}
+
 rsfd.data.getRealData = function (p, callbackFunc) {
   if (typeof callbackFunc !== 'function')
     return false;
@@ -113,7 +121,7 @@ rsfd.data.addAnnotation = function (annotation, callbackFunc) {
     callbackFunc);
 }
 
-rsfd.Chart = function (container, title, location, chartType, id) {
+rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
   if (typeof id !== 'string') {
     id = container + '_chart';
   }
@@ -123,6 +131,7 @@ rsfd.Chart = function (container, title, location, chartType, id) {
   this.location = location;
   this.id = id;
   this.type = chartType;
+  this.yAxisName = yAxisName;
   
   this.chart = new Highcharts.Chart({
     chart: {
@@ -137,6 +146,7 @@ rsfd.Chart = function (container, title, location, chartType, id) {
     },
     plotOptions: {
       series: {
+		animation: false,
         marker: {
           enabled: false,
           states: {
@@ -170,6 +180,11 @@ rsfd.Chart = function (container, title, location, chartType, id) {
 
       }
     },
+	yAxis: {
+		title: {
+			text: this.yAxisName
+		}
+	},
     series: []
   });
   
@@ -268,10 +283,10 @@ rsfd.Chart.prototype.shiftValues = function (seriesName, amount) {
   {
 	for(sNames in this.series)
 	{
-		if(sNames === "Observed Data") continue;
+		if(sNames !== "Observed Data") continue;
 		var data = this.series[sNames].data;
 		for (var point in data) {
-			data[point].update(data[point].y -= amount, false, false);
+			data[point].update(data[point].y += amount, false, false);
 		}
 		//this.redraw();
 	}
@@ -469,23 +484,25 @@ rsfd.Controller.prototype.showData = function() {
 
 $(document).ready(function () {
   //rsfd.ui.showSelectPrompt();
-  var elevation_chart = new rsfd.Chart("elevation", rsfd.ui.getLocation() + " Gage Height", rsfd.ui.getLocation(), "elevation");
-  var discharge_chart = new rsfd.Chart("discharge", rsfd.ui.getLocation() + " Discharge", rsfd.ui.getLocation(), "discharge");
+  var elevation_chart = new rsfd.Chart("elevation", rsfd.ui.getLocation() + " Gage Height", rsfd.ui.getLocation(), "Water-Surface Elevation, feet", "elevation");
+  var discharge_chart = new rsfd.Chart("discharge", rsfd.ui.getLocation() + " Discharge", rsfd.ui.getLocation(), "Discharge in CFS", "discharge");
   controller = new rsfd.Controller();
   controller.registerChart("elevation", elevation_chart);
   controller.registerChart("discharge", discharge_chart);
   rsfd.ui.setFileNames();
+  rsfd.ui.setOffset();
   controller.showData();
   $('#refresh-button').click(function () {
+    rsfd.ui.setOffset();
     controller.showData();
   });
   $("#elevation_shift_control_button").click(function () {
-    controller.shiftValues('elevation', 'simulated', parseInt($('#elevation_shift_control').val()));
+    controller.shiftValues('elevation', 'simulated', parseFloat($('#elevation_shift_control').val()));
   });
   $("#add_simulated_file_button").click(function () {
     rsfd.ui.addSimulatedFileInput();
   });  
   $("#add_sim_data_to_chart_button").click(function () {
     controller.showData();
-  });  
+  });   
 })
