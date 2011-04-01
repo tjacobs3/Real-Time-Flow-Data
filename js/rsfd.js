@@ -54,12 +54,15 @@ rsfd.ui.getSimulatedFileNames = function () {
 rsfd.ui.setFileNames = function () {
 	$.getJSON("get_simulationfile_names.php",
 	function(data) {
-		for(var i = 0; i < data.length; i++)
-		{
-			if(i > 0) rsfd.ui.addSimulatedFileInput();
-			$("#simulated_file_" + (i+1)).val(data[i]);
-		}
-  });
+		$.getJSON("get_simulation_alias.php",
+		function(aliasData) {
+			for(var i = 0; i < data.length; i++)
+			{
+				if(i > 0) rsfd.ui.addSimulatedFileInput();
+				$("#simulated_file_" + (i+1)).val(data[i]+": " + aliasData[data[i]]);
+			}
+		});
+	});
 }
 
 rsfd.ui.setOffset = function () {
@@ -174,6 +177,10 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
         return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + this.y;
       }
     },
+    exporting: {
+        enabled: true
+    },
+    
     xAxis: {
       type: 'datetime',
       dateTimeLabelFormats: {
@@ -438,6 +445,7 @@ rsfd.Controller.prototype.showObservedData = function (chart, parameters) {
       c.displayData(data);
       that.showAnnotation(c, p, "Observed Data");
       c.hidePrompt(p_id);
+      controller.shiftValues('elevation', 'simulated', parseFloat($('#elevation_shift_control').val()));
     }
   } (chart, p_id, parameters, this));
 }
