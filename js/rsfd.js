@@ -142,6 +142,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     chart: {
       zoomType: 'x',
       renderTo: container,
+	  animation: false,
       events: {
         redraw: function () {
           that.refreshAllAnnotation();
@@ -157,6 +158,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     plotOptions: {
       series: {
 		animation: false,
+		shadow: false,
         marker: {
           enabled: false,
           states: {
@@ -180,8 +182,9 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
       }      
     },
     tooltip: {
+	shadow: false,
       formatter: function () {
-        return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + this.y;
+        return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + (Math.round (this.y *100) / 100);
       }
     },
     exporting: {
@@ -238,7 +241,7 @@ rsfd.Chart.prototype.displayData = function (data) {
     
     if (data.series[type].length > 0) {
       this.series[type] = this.chart.addSeries({
-        type: 'spline',
+        type: 'line',
         name: type,
         data: data.series[type],
         pointStart: Date(0)
