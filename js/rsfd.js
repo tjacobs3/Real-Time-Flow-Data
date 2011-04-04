@@ -59,7 +59,8 @@ rsfd.ui.setFileNames = function () {
 			for(var i = 0; i < data.length; i++)
 			{
 				if(i > 0) rsfd.ui.addSimulatedFileInput();
-				$("#simulated_file_" + (i+1)).val(data[i]+": " + aliasData[data[i]]);
+				//Display alias name here
+				$("#simulated_file_" + (i+1)).val(data[i]);
 			}
 		});
 	});
