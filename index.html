@@ -7,6 +7,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js" type="text/javascript" charset="utf-8"></script>
     <script src="js/highcharts.js" type="text/javascript"></script>
     <script src="js/modules/exporting.js" type="text/javascript"></script>
+    <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js" type="text/javascript" charset="utf-8"></script>
   </head>
   <body>
   
@@ -137,6 +138,13 @@
   <!-- END USGS Footer Template --> 
   
   <script src="js/rsfd.js" type="text/javascript" charset="utf-8"></script>
-  
+  <script id="tmpl_annotation" type="text/x-jquery-tmpl">
+    <li class="annotation_${id}">
+      <div class="annotation_id">${id}</div>
+      <div class="annotation_timestamp">${date}</div>
+      <div class="annotation_content">${content}</div>
+      <div class="annotation_ctrl"><input type="button" class="annotation_delete" value="Delete"></div>
+    </li>
+  </script>
   </body>
 </html>

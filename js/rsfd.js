@@ -59,8 +59,7 @@ rsfd.ui.setFileNames = function () {
 			for(var i = 0; i < data.length; i++)
 			{
 				if(i > 0) rsfd.ui.addSimulatedFileInput();
-				//Display alias name here
-				$("#simulated_file_" + (i+1)).val(data[i]);
+				$("#simulated_file_" + (i+1)).val(data[i]+": " + aliasData[data[i]]);
 			}
 		});
 	});
@@ -110,12 +109,15 @@ rsfd.data.getAnnotation = function (p, seriesName, callbackFunc) {
   if (typeof seriesName === "string" && seriesName !== '')
     p2.seriesName = seriesName;
     
-  $.getJSON('get_annotation.php', p2, callbackFunc);
+  p2.method = 'annotation.get';
+    
+  $.getJSON('annotation.php', p2, callbackFunc);
 }
 
 rsfd.data.addAnnotation = function (annotation, callbackFunc) {
-  $.getJSON('add_annotation.php', 
+  $.getJSON('annotation.php', 
     {
+      method: 'annotation.add',
       location: annotation.location,
       chartType: annotation.chartType,
       seriesName: annotation.seriesName,
@@ -123,6 +125,19 @@ rsfd.data.addAnnotation = function (annotation, callbackFunc) {
       content: annotation.content
     }, 
     callbackFunc);
+}
+
+rsfd.data.deleteAnnotation = function (annotation, callbackFunc) {
+  $.getJSON('annotation.php', 
+    {
+      method: 'annotation.delete',
+      location: annotation.location,
+      chartType: annotation.chartType,
+      seriesName: annotation.seriesName,
+      timestamp: annotation.timestamp,
+      content: annotation.content
+    }, 
+    callbackFunc);  
 }
 
 rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
@@ -142,7 +157,6 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     chart: {
       zoomType: 'x',
       renderTo: container,
-      animation: false,
       events: {
         redraw: function () {
           that.refreshAllAnnotation();
@@ -158,7 +172,6 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     plotOptions: {
       series: {
 		animation: false,
-		shadow: false,
         marker: {
           enabled: false,
           states: {
@@ -182,11 +195,14 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
       }      
     },
     tooltip: {
-	shadow: false,
       formatter: function () {
-        return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + (Math.round (this.y *100) / 100);
+        return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + this.y;
       }
     },
+    exporting: {
+        enabled: true
+    },
+    
     xAxis: {
       type: 'datetime',
       dateTimeLabelFormats: {
@@ -198,15 +214,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
 			  text: this.yAxisName
 		  }
 	  },
-    series: [],
-    exporting: {
-        enabled: true
-    },
-    navigation: {
-        buttonOptions: {
-            enabled: true
-        }   
-    } 
+    series: []
   });
   
   var con = $('#' + this.container);
@@ -245,7 +253,7 @@ rsfd.Chart.prototype.displayData = function (data) {
     
     if (data.series[type].length > 0) {
       this.series[type] = this.chart.addSeries({
-        type: 'line',
+        type: 'spline',
         name: type,
         data: data.series[type],
         pointStart: Date(0)
@@ -300,16 +308,27 @@ rsfd.Chart.prototype.hidePrompt = function (id) {
 }
 
 rsfd.Chart.prototype.shiftValues = function (seriesName, amount) { 
+  if(seriesName === "simulated")
+  {
 	for(sNames in this.series)
 	{
-		if(sNames === seriesName)
-		{
-			var data = this.series[sNames].data;
-			for (var point in data) {
-				data[point].update(data[point].y += amount, false, false);
-			}
+		if(sNames !== "Observed Data") continue;
+		var data = this.series[sNames].data;
+		for (var point in data) {
+			data[point].update(data[point].y += amount, false, false);
 		}
+		//this.redraw();
 	}
+  }
+  else if (typeof this.series[seriesName] === "undefined")
+    return;
+  else {
+	  var data = this.series[seriesName].data;
+	  for (var point in data) {
+		data[point].update(data[point].y += amount, false, false);
+	  }
+	  this.redraw();
+  }
 }
 
 rsfd.Chart.prototype.getElementByX = function (seriesName, x) {
@@ -379,28 +398,37 @@ rsfd.Chart.prototype.addAnnotationToChart = function (annotation) {
 }
 
 rsfd.Chart.prototype.addAnnotationToList = function (annotation) {
+  var that = this;
   if (annotation.onList !== undefined) {
     delete annotation.onList;
   }
   
-  annotation.onList = 
-    $("<li></li>")
-      .attr('class', 'annotation_' + annotation.id);
-      
-  $("<div></div>")
-    .attr('class', 'annotation_id')
-    .text(annotation.id)
-    .appendTo(annotation.onList);
-  $("<div></div>")
-    .attr('class', 'annotation_timestamp')
-    .text(Date(annotation.timestamp))
-    .appendTo(annotation.onList);
-  $("<div></div>")
-    .attr('class', 'annotation_content')
-    .text(annotation.content)
-    .appendTo(annotation.onList);
-    
-  this.annotation_list.append(annotation.onList);
+  annotation.date = Date(annotation.timestamp);
+  annotation.onList = $("#tmpl_annotation").tmpl(annotation).appendTo(this.annotation_list);
+  
+  annotation.onList.find(".annotation_delete").click(function () {
+    that.removeAnnotation(annotation);
+    annotation.delete();
+  });
+  
+  // annotation.onList = 
+  //   $("<li></li>")
+  //     .attr('class', 'annotation_' + annotation.id);
+  //     
+  // $("<div></div>")
+  //   .attr('class', 'annotation_id')
+  //   .text(annotation.id)
+  //   .appendTo(annotation.onList);
+  // $("<div></div>")
+  //   .attr('class', 'annotation_timestamp')
+  //   .text(Date(annotation.timestamp))
+  //   .appendTo(annotation.onList)
+  // $("<div></div>")
+  //   .attr('class', 'annotation_content')
+  //   .text(annotation.content)
+  //   .appendTo(annotation.onList);
+  //   
+  // this.annotation_list.append(annotation.onList);
 }
 
 rsfd.Chart.prototype.addAnnotation = function (annotation) {
@@ -456,6 +484,11 @@ rsfd.Annotation.prototype.remove = function () {
   }
 }
 
+rsfd.Annotation.prototype.delete = function () {
+  this.remove();
+  rsfd.data.deleteAnnotation(this);
+}
+
 rsfd.Controller = function () {
   this.charts = {};
 }
@@ -480,10 +513,7 @@ rsfd.Controller.prototype.showObservedData = function (chart, parameters) {
       c.displayData(data);
       that.showAnnotation(c, p, "Observed Data");
       c.hidePrompt(p_id);
-      if(chart.type === 'elevation')
-      {
-        controller.shiftValues('elevation', 'Observed Data', parseFloat($('#elevation_shift_control').val()));
-      }
+      controller.shiftValues('elevation', 'simulated', parseFloat($('#elevation_shift_control').val()));
     }
   } (chart, p_id, parameters, this));
 }
@@ -525,14 +555,6 @@ rsfd.Controller.prototype.showData = function() {
 	  {
 		  this.showSimulatedData(chart, p, simulatedNames[i]);
 	  }
-    var new_title = chart.chart.title.textStr;
-    var title_arr = new_title.split(" ");
-    new_title = rsfd.ui.getLocation();
-    for(var i = 1; i < title_arr.length; i++)
-    {
-	new_title +=" " + title_arr[i];
-    }
-    chart.chart.setTitle({ text: new_title});
   }
 }
 
@@ -547,8 +569,8 @@ $(document).ready(function () {
   rsfd.ui.setOffset();
   controller.showData();
   $('#refresh-button').click(function () {
-	rsfd.ui.setOffset();
-	controller.showData();
+    rsfd.ui.setOffset();
+    controller.showData();
   });
   $("#elevation_shift_control_button").click(function () {
     controller.shiftValues('elevation', 'simulated', parseFloat($('#elevation_shift_control').val()));
