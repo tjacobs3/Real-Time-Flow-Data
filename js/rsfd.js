@@ -526,6 +526,14 @@ rsfd.Controller.prototype.showData = function() {
 	  {
 		  this.showSimulatedData(chart, p, simulatedNames[i]);
 	  }
+    var new_title = chart.chart.title.textStr;
+    var title_arr = new_title.split(" ");
+    new_title = rsfd.ui.getLocation();
+    for(var i = 1; i < title_arr.length; i++)
+    {
+	new_title +=" " + title_arr[i];
+    }
+    chart.chart.setTitle({ text: new_title});
   }
 }
 
