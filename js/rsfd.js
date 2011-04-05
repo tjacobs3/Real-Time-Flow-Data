@@ -291,7 +291,6 @@ rsfd.Chart.prototype.hidePrompt = function (id) {
     
   this.prompts[id].slideUp(function() {
     $(this).remove();
-    delete this;
     this.prompt_count--;
 
     if (this.prompt_count === 0)
