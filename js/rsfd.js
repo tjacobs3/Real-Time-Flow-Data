@@ -142,7 +142,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
       zoomType: 'x',
       renderTo: container,
       events: {
-        selection: function () {
+        redraw: function () {
           that.refreshAllAnnotation();
         }
       }
