@@ -538,20 +538,21 @@ rsfd.Controller.prototype.showAnnotation = function (chart, parameters, seriesNa
   } (chart, p_id, parameters));
 }
 
-
-rsfd.Controller.prototype.changeTitle = function ()
+rsfd.Controller.prototype.changeLocation = function (loc)
 {
-    for (var chart_type in this.charts) {
-        chart = this.charts[chart_type];
-        var new_title = chart.chart.title.textStr;
-        var title_arr = new_title.split(' ');
-        new_title = rsfd.ui.getLocation();
-        for(var i = 1; i < title_arr.length; i++)
-        {
-        new_title +=" " + title_arr[i];
-        }
-        chart.chart.setTitle({ text: new_title});
-    }
+  var chart_type, new_title, chart;
+  for (chart_type in this.charts) {
+    chart = this.charts[chart_type];
+    new_title = loc + {'elevation': ' Gage Height', 'discharge': ' Discharge'} [chart_type];
+    // var new_title = chart.chart.title.textStr;
+    // var title_arr = new_title.split(' ');
+    // new_title = rsfd.ui.getLocation();
+    // for(var i = 1; i < title_arr.length; i++)
+    // {
+    // new_title +=" " + title_arr[i];
+    // }
+    chart.chart.setTitle({text: new_title});
+  }
 }
 
 
@@ -568,7 +569,6 @@ rsfd.Controller.prototype.showData = function() {
 	  {
 		  this.showSimulatedData(chart, p, simulatedNames[i]);
 	  }
-    this.changeTitle();
   }
 }
 
@@ -585,6 +585,7 @@ $(document).ready(function () {
   $('#refresh-button').click(function () {
     rsfd.ui.setOffset();
     controller.showData();
+    controller.changeLocation(rsfd.ui.getLocation());
   });
   $("#elevation_shift_control_button").click(function () {
     controller.shiftValues('elevation', 'simulated', parseFloat($('#elevation_shift_control').val()));
