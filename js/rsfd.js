@@ -1,3 +1,14 @@
+var site_names = new Array();
+site_names["U84"] = "U84";
+site_names["D126"] = "D126";
+site_names["U204"] = "Irving (ULTR, ADMT)";
+site_names["U22"] = "Irving (ULTR, ADMT)";
+site_names["D45"] = "Diversion";
+site_names["D57"] = "D57";
+site_names["D80"] = "Harger (ULTR, ADMT)";
+site_names["U84"] = "U84";
+site_names["D108"] = "D108";
+
 var rsfd = rsfd || {};
 rsfd.ui = rsfd.ui || {};
 rsfd.data = rsfd.data || {};
@@ -200,7 +211,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     tooltip: {
       shadow:false,
       formatter: function () {
-        return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + this.y;
+        return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + Math.round(this.y*100)/100;
       }
     },
     exporting: {
@@ -210,7 +221,10 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     xAxis: {
       type: 'datetime',
       dateTimeLabelFormats: {
-
+		day: '%e. %b',
+		hour: '%e. %b, %H:%M',
+		minute: '%e. %b, %H:%M',
+		second: '%H:%M:%S'
       }
     },
 	  yAxis: {
@@ -543,14 +557,7 @@ rsfd.Controller.prototype.changeLocation = function (loc)
   var chart_type, new_title, chart;
   for (chart_type in this.charts) {
     chart = this.charts[chart_type];
-    new_title = loc + {'elevation': ' Gage Height', 'discharge': ' Discharge'} [chart_type];
-    // var new_title = chart.chart.title.textStr;
-    // var title_arr = new_title.split(' ');
-    // new_title = rsfd.ui.getLocation();
-    // for(var i = 1; i < title_arr.length; i++)
-    // {
-    // new_title +=" " + title_arr[i];
-    // }
+    new_title = site_names[loc] + {'elevation': ' Gage Height', 'discharge': ' Discharge'} [chart_type];
     chart.chart.setTitle({text: new_title});
   }
 }
