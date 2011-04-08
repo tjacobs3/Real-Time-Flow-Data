@@ -59,7 +59,8 @@ rsfd.ui.setFileNames = function () {
 			for(var i = 0; i < data.length; i++)
 			{
 				if(i > 0) rsfd.ui.addSimulatedFileInput();
-				$("#simulated_file_" + (i+1)).val(data[i]+": " + aliasData[data[i]]);
+				//Display alias name here
+				$("#simulated_file_" + (i+1)).val(data[i]);
 			}
 		});
 	});
@@ -76,7 +77,7 @@ rsfd.ui.setOffset = function () {
 rsfd.data.getRealData = function (p, callbackFunc) {
   if (typeof callbackFunc !== 'function')
     return false;
-  
+
   $.getJSON('get_plot_data.php', p, callbackFunc);
   
   return true;
@@ -140,6 +141,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
   this.chart = new Highcharts.Chart({
     chart: {
       zoomType: 'x',
+      animation: false,
       renderTo: container,
       events: {
         selection: function () {
@@ -155,7 +157,8 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     },
     plotOptions: {
       series: {
-		animation: false,
+	animation: false,
+	shadow: false,
         marker: {
           enabled: false,
           states: {
@@ -179,6 +182,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
       }      
     },
     tooltip: {
+      shadow:false,
       formatter: function () {
         return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + this.y;
       }
@@ -237,7 +241,7 @@ rsfd.Chart.prototype.displayData = function (data) {
     
     if (data.series[type].length > 0) {
       this.series[type] = this.chart.addSeries({
-        type: 'spline',
+        type: 'line',
         name: type,
         data: data.series[type],
         pointStart: Date(0)
@@ -292,27 +296,16 @@ rsfd.Chart.prototype.hidePrompt = function (id) {
 }
 
 rsfd.Chart.prototype.shiftValues = function (seriesName, amount) { 
-  if(seriesName === "simulated")
-  {
 	for(sNames in this.series)
 	{
-		if(sNames !== "Observed Data") continue;
-		var data = this.series[sNames].data;
-		for (var point in data) {
-			data[point].update(data[point].y += amount, false, false);
+		if(sNames === seriesName)
+		{
+			var data = this.series[sNames].data;
+			for (var point in data) {
+				data[point].update(data[point].y += amount, false, false);
+			}
 		}
-		//this.redraw();
 	}
-  }
-  else if (typeof this.series[seriesName] === "undefined")
-    return;
-  else {
-	  var data = this.series[seriesName].data;
-	  for (var point in data) {
-		data[point].update(data[point].y += amount, false, false);
-	  }
-	  this.redraw();
-  }
 }
 
 rsfd.Chart.prototype.getElementByX = function (seriesName, x) {
@@ -469,7 +462,10 @@ rsfd.Controller.prototype.showObservedData = function (chart, parameters) {
       c.displayData(data);
       that.showAnnotation(c, p, "Observed Data");
       c.hidePrompt(p_id);
-      controller.shiftValues('elevation', 'simulated', parseFloat($('#elevation_shift_control').val()));
+      if(chart.type === 'elevation')
+      {
+        controller.shiftValues('elevation', 'Observed Data', parseFloat($('#elevation_shift_control').val()));
+      }
     }
   } (chart, p_id, parameters, this));
 }
