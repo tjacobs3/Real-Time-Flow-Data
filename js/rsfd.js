@@ -9,6 +9,8 @@ site_names["D80"] = "Harger (ULTR, ADMT)";
 site_names["U84"] = "U84";
 site_names["D108"] = "D108";
 
+var simulationFolderName = "simulationfiles";
+
 var rsfd = rsfd || {};
 rsfd.ui = rsfd.ui || {};
 rsfd.data = rsfd.data || {};
@@ -103,7 +105,7 @@ rsfd.data.getSimulatedData = function (p, simfile, callbackFunc) {
     p2[prop] = p[prop];
   }
   if (typeof simfile === "string" && simfile !== '')
-    p2.simLocation = simfile;
+    p2.simLocation = simulationFolderName + "\\" + simfile;
     
   $.getJSON('get_simulation_data.php', p2, callbackFunc);
   
@@ -211,7 +213,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     tooltip: {
       shadow:false,
       formatter: function () {
-        return Highcharts.dateFormat("%b %d, %Y", this.x) + ": " + Math.round(this.y*100)/100;
+        return Highcharts.dateFormat("%b %d, %Y %H:%M%p <span style=\"visibility: hidden;\">-</span><br/>Value: ", this.x) + Math.round(this.y*100)/100;
       }
     },
     exporting: {
@@ -220,10 +222,11 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     
     xAxis: {
       type: 'datetime',
+	  maxZoom: 1000 * 60 * 60 * 10, // 10 hours
       dateTimeLabelFormats: {
-		day: '%e. %b',
-		hour: '%e. %b, %H:%M',
-		minute: '%e. %b, %H:%M',
+		day: '%m\\%e\\%y',
+		hour: '%m\\%e:  %H:%M',
+		minute: '%m\\%e:  %H:%M',
 		second: '%H:%M:%S'
       }
     },
