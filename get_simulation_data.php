@@ -103,7 +103,10 @@ $chartData["series"] = array();
 
 $typeNum = ($chartType == "elevation") ? "00065" : "00060";
 $typeSimName = ($chartType == "elevation") ? "elevation" : "flow";
-if($dataType == "simulated" || $dataType == "both") $chartData["series"]["Simulated Data: ".$simulatedFileLocation] = get_simulated_plot_data($location, $typeSimName); 
+if($dataType == "simulated" || $dataType == "both"){
+	$pieces = explode("\\", $simulatedFileLocation);
+	$chartData["series"]["".$pieces[1]] = get_simulated_plot_data($location, $typeSimName); 
+}
  
 echo json_encode($chartData);
 ?>
