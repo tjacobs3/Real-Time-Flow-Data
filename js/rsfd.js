@@ -403,25 +403,6 @@ rsfd.Chart.prototype.addAnnotationToList = function (annotation) {
     that.removeAnnotation(annotation);
     annotation.delete();
   });
-  
-  // annotation.onList = 
-  //   $("<li></li>")
-  //     .attr('class', 'annotation_' + annotation.id);
-  //     
-  // $("<div></div>")
-  //   .attr('class', 'annotation_id')
-  //   .text(annotation.id)
-  //   .appendTo(annotation.onList);
-  // $("<div></div>")
-  //   .attr('class', 'annotation_timestamp')
-  //   .text(Date(annotation.timestamp))
-  //   .appendTo(annotation.onList)
-  // $("<div></div>")
-  //   .attr('class', 'annotation_content')
-  //   .text(annotation.content)
-  //   .appendTo(annotation.onList);
-  //   
-  // this.annotation_list.append(annotation.onList);
 }
 
 rsfd.Chart.prototype.addAnnotation = function (annotation) {
