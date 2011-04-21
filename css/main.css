@@ -21,6 +21,11 @@ body {
   position: relative;
 }
 
+.chart_container_small {
+  height: 200px;
+  position: relative;
+}
+
 .chart_container .chart_prompt {
   background: black;
   background-color: rgba(0,0,0,0.6);

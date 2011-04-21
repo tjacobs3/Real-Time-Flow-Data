@@ -48,6 +48,21 @@ rsfd.ui.getAllParameter = function () {
   }
 }
 
+rsfd.ui.getParametersFromURL = function () {
+	var loc = rsfd.ui.getUrlVars()["location"];
+	var period = rsfd.ui.getUrlVars()["period"];	
+	if (loc) $("#location").val(loc);
+	if (period)$("#period").val(period);
+}
+
+rsfd.ui.getUrlVars = function() {
+	var vars = {};
+	var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+		vars[key] = value;
+	});
+	return vars;
+}
+
 rsfd.ui.addSimulatedFileInput = function () {
 	if(!rsfd.ui.simCount) rsfd.ui.simCount = 2;
 	$("#simulated_files_container").append("<label for=\"simulated_file_" + rsfd.ui.simCount + "\">FEQ File " + rsfd.ui.simCount + ": </label><input type=\"text\" name=\"simulated_file_" + rsfd.ui.simCount + "\" value=\"\" id=\"simulated_file_" + rsfd.ui.simCount + "\"><br />");
@@ -85,6 +100,11 @@ rsfd.ui.setOffset = function () {
 	{
 		$('#elevation_shift_control').val(data);
 	});
+}
+
+rsfd.ui.reloadPage = function () {
+	var url = window.location.href.split('?');
+	window.location.href=url[0]+"?location=" + rsfd.ui.getLocation() + "&period=" + rsfd.ui.getPeriod();
 }
 
 rsfd.data.getRealData = function (p, callbackFunc) {
@@ -213,7 +233,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
     tooltip: {
       shadow:false,
       formatter: function () {
-        return Highcharts.dateFormat("%b %d, %Y %H:%M%p <span style=\"visibility: hidden;\">-</span><br/>Value: ", this.x) + Math.round(this.y*100)/100;
+        return Highcharts.dateFormat("%b %d, %Y %l:%M%p <span style=\"visibility: hidden;\">-</span><br/>Value: ", this.x) + Math.round(this.y*100)/100;
       }
     },
     exporting: {
@@ -224,17 +244,18 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
       type: 'datetime',
 	  maxZoom: 1000 * 60 * 60 * 10, // 10 hours
       dateTimeLabelFormats: {
-		day: '%m\\%e\\%y',
-		hour: '%m\\%e:  %H:%M',
-		minute: '%m\\%e:  %H:%M',
+		day: '%m/%e/%y',
+		hour: '%m/%e:  %H:%M',
+		minute: '%m/%e:  %H:%M',
 		second: '%H:%M:%S'
       }
     },
-	  yAxis: {
-		  title: {
+	yAxis: [{
+			title: {
 			  text: this.yAxisName
 		  }
-	  },
+         
+      }],
     series: []
   });
   
@@ -271,15 +292,18 @@ rsfd.Chart.prototype.displayData = function (data) {
     if (type in this.series) {
       this.series[type].remove();
     }
-    
-    if (data.series[type].length > 0) {
+	var axisIndex = 0;
+	//if(type === "Precipitation")  axisIndex = 1;
+    if(data.series[type].length > 0)
+	{
       this.series[type] = this.chart.addSeries({
         type: 'line',
         name: type,
         data: data.series[type],
+		yAxis: axisIndex,
         pointStart: Date(0)
-      });
-    }
+      });	
+	}
   }
 }
 
@@ -565,7 +589,6 @@ rsfd.Controller.prototype.changeLocation = function (loc)
   }
 }
 
-
 rsfd.Controller.prototype.showData = function() {
   var p = rsfd.ui.getAllParameter();
   var chart, prompt_id;
@@ -583,19 +606,24 @@ rsfd.Controller.prototype.showData = function() {
 }
 
 $(document).ready(function () {
+  rsfd.ui.getParametersFromURL();
   //rsfd.ui.showSelectPrompt();
-  var elevation_chart = new rsfd.Chart("elevation", rsfd.ui.getLocation() + " Gage Height", rsfd.ui.getLocation(), "Water-Surface Elevation, feet", "elevation");
-  var discharge_chart = new rsfd.Chart("discharge", rsfd.ui.getLocation() + " Discharge", rsfd.ui.getLocation(), "Discharge in CFS", "discharge");
+  var elevation_chart = new rsfd.Chart("elevation", site_names[rsfd.ui.getLocation()] + " Gage Height", rsfd.ui.getLocation(), "Water-Surface Elevation, feet", "elevation");
+  var discharge_chart = new rsfd.Chart("discharge", site_names[rsfd.ui.getLocation()] + " Discharge", rsfd.ui.getLocation(), "Discharge in CFS", "discharge");
+  var precipitation_chart = new rsfd.Chart("precipitation", site_names[rsfd.ui.getLocation()] + " Precipitation", rsfd.ui.getLocation(), "Precipitation in Inches", "precipitation");
   controller = new rsfd.Controller();
   controller.registerChart("elevation", elevation_chart);
   controller.registerChart("discharge", discharge_chart);
+  controller.registerChart("precipitation", precipitation_chart);
   rsfd.ui.setFileNames();
   rsfd.ui.setOffset();
-  controller.showData();
+  setTimeout("controller.showData()",500);
+
   $('#refresh-button').click(function () {
-    rsfd.ui.setOffset();
-    controller.showData();
-    controller.changeLocation(rsfd.ui.getLocation());
+	rsfd.ui.reloadPage();
+    //rsfd.ui.setOffset();
+    //controller.showData();
+    //controller.changeLocation(rsfd.ui.getLocation());
   });
   $("#elevation_shift_control_button").click(function () {
     controller.shiftValues('elevation', 'simulated', parseFloat($('#elevation_shift_control').val()));
