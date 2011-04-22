@@ -65,7 +65,7 @@ rsfd.ui.getUrlVars = function() {
 
 rsfd.ui.addSimulatedFileInput = function () {
 	if(!rsfd.ui.simCount) rsfd.ui.simCount = 2;
-	$("#simulated_files_container").append("<label for=\"simulated_file_" + rsfd.ui.simCount + "\">FEQ File " + rsfd.ui.simCount + ": </label><input type=\"text\" name=\"simulated_file_" + rsfd.ui.simCount + "\" value=\"\" id=\"simulated_file_" + rsfd.ui.simCount + "\"><br />");
+	$("#simulated_files_container").append("<label for=\"simulated_file_" + rsfd.ui.simCount + "\">FEQ File " + rsfd.ui.simCount + ": </label><input type=\"text\" name=\"simulated_file_" + rsfd.ui.simCount + "\" value=\"\" id=\"simulated_file_" + rsfd.ui.simCount + "\"readonly=\"readonly\"><br />");
 	rsfd.ui.simCount++;
 }
 
@@ -245,9 +245,9 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
 	  maxZoom: 1000 * 60 * 60 * 10, // 10 hours
       dateTimeLabelFormats: {
 		day: '%m/%e/%y',
-		hour: '%m/%e:  %H:%M',
-		minute: '%m/%e:  %H:%M',
-		second: '%H:%M:%S'
+		hour: '%m/%e:%l:%M%p',
+		minute: '%m/%e:%l:%M%p',
+		second: '%l:%M:%S%p'
       }
     },
 	yAxis: [{
@@ -608,9 +608,9 @@ rsfd.Controller.prototype.showData = function() {
 $(document).ready(function () {
   rsfd.ui.getParametersFromURL();
   //rsfd.ui.showSelectPrompt();
-  var elevation_chart = new rsfd.Chart("elevation", site_names[rsfd.ui.getLocation()] + " Gage Height", rsfd.ui.getLocation(), "Water-Surface Elevation, feet", "elevation");
-  var discharge_chart = new rsfd.Chart("discharge", site_names[rsfd.ui.getLocation()] + " Discharge", rsfd.ui.getLocation(), "Discharge in CFS", "discharge");
-  var precipitation_chart = new rsfd.Chart("precipitation", site_names[rsfd.ui.getLocation()] + " Precipitation", rsfd.ui.getLocation(), "Precipitation in Inches", "precipitation");
+  var elevation_chart = new rsfd.Chart("elevation", site_names[rsfd.ui.getLocation()] + " Gage Height, " + new Date().getFullYear(), rsfd.ui.getLocation(), "Water-Surface Elevation, feet", "elevation");
+  var discharge_chart = new rsfd.Chart("discharge", site_names[rsfd.ui.getLocation()] + " Discharge, " + new Date().getFullYear(), rsfd.ui.getLocation(), "Discharge in CFS", "discharge");
+  var precipitation_chart = new rsfd.Chart("precipitation", site_names[rsfd.ui.getLocation()] + " Precipitation, " + + new Date().getFullYear(), rsfd.ui.getLocation(), "Precipitation in Inches", "precipitation");
   controller = new rsfd.Controller();
   controller.registerChart("elevation", elevation_chart);
   controller.registerChart("discharge", discharge_chart);
