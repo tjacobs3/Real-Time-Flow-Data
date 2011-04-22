@@ -250,7 +250,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
 		second: '%l:%M:%S%p'
       }
     },
-	yAxis: [{
+	  yAxis: [{
 			title: {
 			  text: this.yAxisName
 		  }
@@ -288,6 +288,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
 }
 
 rsfd.Chart.prototype.displayData = function (data) {
+  $("#" + this.container).show();
   for (var type in data.series) {
     if (type in this.series) {
       this.series[type].remove();
@@ -327,6 +328,7 @@ rsfd.Chart.prototype.userAddAnnotation = function (seriesName, timestamp, conten
 }
 
 rsfd.Chart.prototype.showPrompt = function (content) {
+  $("#" + this.container).show();
   if (typeof content === "undefined" || content === "")
     return;
   
@@ -339,16 +341,21 @@ rsfd.Chart.prototype.showPrompt = function (content) {
 }
 
 rsfd.Chart.prototype.hidePrompt = function (id) {
+  var that = this;
   if (typeof this.prompts[id] === 'undefined')
     return;
     
   this.prompts[id].slideUp(function() {
     $(this).remove();
-    this.prompt_count--;
+    that.prompt_count--;
 
-    if (this.prompt_count === 0)
-      this.prompt_window.hide();
-    
+    if (that.prompt_count === 0) {
+      if (that.chart.series.length === 0) {
+        $("#" + that.container).hide();
+      } else {
+        that.prompt_window.hide();
+      }
+    }
   });
 }
 
