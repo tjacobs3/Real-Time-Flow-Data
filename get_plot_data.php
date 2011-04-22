@@ -146,7 +146,7 @@ $typeNum = ($chartType == "elevation") ? "00065" : "00060";
 if($dataType == "real" || $dataType == "both") $chartData["series"]["Observed Data"] = get_plot_data($typeNum);
 $typeSimName = ($chartType == "elevation") ? "elevation" : "flow";
 if($dataType == "simulated" || $dataType == "both") $chartData["series"]["Simulated Data"] = get_simulated_plot_data($location, $typeSimName); 
-if($precip == "true") $chartData["series"]["Precipitation"] = $chartData["series"]["Precipitation"] = get_plot_data("00045");
+if($precip == "true"  || true) $chartData["series"]["Precipitation"] = $chartData["series"]["Precipitation"] = get_plot_data("00045");
  
 echo json_encode($chartData);
 ?>
