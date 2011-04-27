@@ -449,7 +449,7 @@ rsfd.Chart.prototype.addAnnotationToList = function (annotation) {
   
   annotation.onList.find(".annotation_delete").click(function () {
     that.removeAnnotation(annotation);
-    annotation.delete();
+    annotation.del();
   });
 }
 
@@ -506,7 +506,7 @@ rsfd.Annotation.prototype.remove = function () {
   }
 }
 
-rsfd.Annotation.prototype.delete = function () {
+rsfd.Annotation.prototype.del = function () {
   this.remove();
   rsfd.data.deleteAnnotation(this);
 }
@@ -598,7 +598,7 @@ $(document).ready(function () {
   //rsfd.ui.showSelectPrompt();
   var elevation_chart = new rsfd.Chart("elevation", site_names[rsfd.ui.getLocation()] + " Gage Height, " + new Date().getFullYear(), rsfd.ui.getLocation(), "Water-Surface Elevation, feet", "elevation");
   var discharge_chart = new rsfd.Chart("discharge", site_names[rsfd.ui.getLocation()] + " Discharge, " + new Date().getFullYear(), rsfd.ui.getLocation(), "Discharge in CFS", "discharge");
-  var precipitation_chart = new rsfd.Chart("precipitation", site_names[rsfd.ui.getLocation()] + " Precipitation, " + + new Date().getFullYear(), rsfd.ui.getLocation(), "Precipitation in Inches", "precipitation");
+  var precipitation_chart = new rsfd.Chart("precipitation", site_names[rsfd.ui.getLocation()] + " Precipitation, " + new Date().getFullYear(), rsfd.ui.getLocation(), "Precipitation in Inches", "precipitation");
   controller = new rsfd.Controller();
   controller.registerChart("elevation", elevation_chart);
   controller.registerChart("discharge", discharge_chart);
