@@ -245,7 +245,7 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
 	  maxZoom: 1000 * 60 * 60 * 10, // 10 hours
       dateTimeLabelFormats: {
 		day: '%m/%e/%y',
-		hour: '%m/%e:%l:%M%p',
+		hour: '%m/%e<br>%l:%M%p',
 		minute: '%m/%e:%l:%M%p',
 		second: '%l:%M:%S%p'
       }
