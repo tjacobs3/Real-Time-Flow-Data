@@ -208,6 +208,11 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
       series: {
 	animation: false,
 	shadow: false,
+	events: {
+                legendItemClick: function(event) {
+			 that.refreshAllAnnotation();
+                }
+            },	
         marker: {
           enabled: false,
           states: {
