@@ -101,8 +101,12 @@ $chartData["title"] = $location . " " . get_title();
 $chartData["location"] = $location;
 $chartData["series"] = array();
 
-$typeNum = ($chartType == "elevation") ? "00065" : "00060";
+$typeNum = "00060";
+if ($chartType == "elevation") $typeNum = "00065";
+if ($chartType == "discharge") $typeNum = "00060";
+if ($chartType == "precipitation") $typeNum = "00045"; 
 $typeSimName = ($chartType == "elevation") ? "elevation" : "flow";
+if($chartType == "precipitation") $typeSimName = "precip";
 if($dataType == "simulated" || $dataType == "both"){
 	$pieces = explode("\\", $simulatedFileLocation);
 	$chartData["series"]["".$pieces[1]] = get_simulated_plot_data($location, $typeSimName); 
