@@ -66,7 +66,7 @@ $method = $_GET["method"];
 if ($method == 'annotation.get') {
   get_annotations();
 } else if ($method == "annotation.add") {
-  add_annotation();
+  add_annotations();
 } else if ($method == "annotation.delete") {
   delete_annotation();
 }
