@@ -20,7 +20,7 @@ $simulatedFileLocation = isset($_GET["simLocation"]) ? $_GET["simLocation"] : "g
 //$location = "U22";
 $location = isset($_GET["location"]) ? $_GET["location"] : "U22";
 $timePeriod = isset($_GET["period"]) ? $_GET["period"] : "7";
-$chartType = isset($_GET["chartType"]) ? $_GET["chartType"] : "elevation";  // Can be "elevation" or "discharge"
+$chartType = isset($_GET["chartType"]) ? $_GET["chartType"] : "elevation";  // Can be "elevation" or "discharge" 
 $dataType = isset($_GET["dataType"]) ? $_GET["dataType"] : "real"; // Can be "real" or "simulated" or "both"
 $precip = isset($_GET["includePrecip"]) ? $_GET["includePrecip"] : "false";
 
@@ -142,11 +142,20 @@ $chartData["title"] = $location . " " . get_title();
 $chartData["location"] = $location;
 $chartData["series"] = array();
 
-$typeNum = ($chartType == "elevation") ? "00065" : "00060";
-if($dataType == "real" || $dataType == "both") $chartData["series"]["Observed Data"] = get_plot_data($typeNum);
+$typeNum = "00060";
+if($chartType == "elevation") $typeNum = "00065";
+if($chartType == "discharge") $typeNum = "00060";
+if($chartType == "precipitation") $typeNum = "00045";
+if($dataType == "real" || $dataType == "both") 
+{
+  if($chartType == "precipitation") $chartData["series"]["Precipitation"] = get_plot_data($typeNum);
+  else $chartData["series"]["Observed Data"] = get_plot_data($typeNum);   
+}
 $typeSimName = ($chartType == "elevation") ? "elevation" : "flow";
 if($dataType == "simulated" || $dataType == "both") $chartData["series"]["Simulated Data"] = get_simulated_plot_data($location, $typeSimName); 
-if($precip == "true"  || true) $chartData["series"]["Precipitation"] = $chartData["series"]["Precipitation"] = get_plot_data("00045");
+//if($precip == "true"  || true) $chartData["series"]["Precipitation"] = $chartData["series"]["Precipitation"] = get_plot_data("00045");
+
+//if($chartType == "precipitation") unset($chartData["series"]["Observed Data"]);
  
 echo json_encode($chartData);
 ?>
