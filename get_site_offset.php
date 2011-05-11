@@ -1,4 +1,12 @@
 <?php
+/**
+ * Get Site Offset
+ * 
+ * This file contains the functionality for serving the observed data offsets
+ * via a JSON object.  Change or add values to the $site_offsets array
+ * to change the observed data offsets.
+ */
+
 header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 header('Content-type: application/json');

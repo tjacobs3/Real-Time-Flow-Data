@@ -1,12 +1,20 @@
 <?php
-
+/**
+ * Simulation Parser
+ * 
+ * This file contains the functionality for reading an FEQ file
+ */
+ 
 	//Global arrays to hold location names and all data related to them
 	$locations = Array();
 	$data = Array();
 	$range;
 
-	//Remove invalid entries from the location names
-	//removes blank entries from the array
+	/**
+	 * Clear Invalid Entries
+	 * 
+	 * Remove invalid and blank entries from the location names global variable.
+	 */
 	function clearInvalidEntries($count)
 	{
 		global $locations;
@@ -19,9 +27,14 @@
 		}
 	}
 
-	//Parses each line of the file
-	//Splits it based on the number of spaces (greater than 2)
-	//Stores related information about each location in the data array
+	/**
+	 * Parse Line
+	 * Parses each line of the file
+	 * Splits it based on the number of spaces (greater than 2)
+	 * Stores related information about each location in the global data array
+	 * @param array $line Array holding the tab delimited data where each array value is a string representing one line of data
+	 * @return boolean true if successful.  
+	 */
 	function parseLine($line)
 	{
 		global $locations;
@@ -85,15 +98,27 @@
 		return true;
 	}
 
-	//Returns the data based on the location passed in
+	/**
+	 * Get Simulation Data
+	 * Returns the data based on the location passed in.
+	 * Global variable data must be set beforehand by calling parseFile
+	 * @param string $location Location to get simulated data for
+	 * @return Array simulated data for location.  
+	 */
 	function getSimulationData($location)
 	{
 		global $data;
 		return $data[$location];
 	}
 
-
-	//Get all location names
+	/**
+	 * Parse Names
+	 * Gets the locations that the FEQ file contains.  This is done by
+	 * passing in the string that represents the line of the FEQ file that 
+	 * contains the names.  Does not return a value, instead it sets the 
+	 * $locations global
+	 * @param string $val line from the FEQ file that contains the locations
+	 */
 	function parseNames($val)
 	{
 		$delimiter = "/[\s]{2,}+/ ";
@@ -110,6 +135,13 @@
 	}
 
 	//Parses a given Simulated data flat file according to a fixed file format
+	/**
+	 * Parse File 
+	 * Parses an FEQ file for data within the past $timePeriod
+	 * Sets the global variable $data
+	 * @param string $location Location to get simulated data for
+	 * @param int $timePeriod number of days to look for.
+	 */
 	function parseFile($fileLocation, $timePeriod)
 	{
 		//Set the range

@@ -67,6 +67,7 @@ class Mobile_Detect {
 
 
     /**
+	 * Is Mobile
      * Returns true if any type of mobile device detected, including special ones
      * @return bool
      */

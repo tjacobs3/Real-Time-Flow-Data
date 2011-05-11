@@ -1,4 +1,11 @@
 <?php
+/**
+ * Get Simulation Data
+ * 
+ * This file contains the functionality for serving the simulated data
+ * via json objects. 
+ */
+ 
 header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
 header('Content-type: application/json');
@@ -6,21 +13,17 @@ header('Content-type: application/json');
 include 'simulationParser.php';
 include 'site_no.php';
 
+// Initialize the time zone.  Required to get accurate millisecond data
 date_default_timezone_set('America/Chicago'); 
+
 $titles = array("00065" => "Gage Height", "00060" => "Discharge", "00045" => "Precipitation");
-//$file = getFileAsArray("http://waterdata.usgs.gov/il/nwis/uv?cb_00065=on&cb_00060=on&cb_00045=on&format=rdb&period=7&site_no=05531300");
-$file;
-$columns;
-$data;
-//$columns = getColumnNames($file);
-//$data = getData($file);
-//$simulatedFileLocation = "gate798.wsq";
 $simulatedFileLocation = isset($_GET["simLocation"]) ? $_GET["simLocation"] : "gate798.wsq";
-//$location = "U22";
 $location = isset($_GET["location"]) ? $_GET["location"] : "U22";
 $timePeriod = isset($_GET["period"]) ? $_GET["period"] : "7";
 $chartType = isset($_GET["chartType"]) ? $_GET["chartType"] : "elevation";  // Can be "elevation" or "discharge"
 $dataType = isset($_GET["dataType"]) ? $_GET["dataType"] : "both"; // Can be "real" or "simulated" or "both"
+$columns;
+$data;
 
 //Parse given date based on Y-m-d H:i
 function formatDate($time)
@@ -37,16 +40,13 @@ function formatDate($time)
   return $dateTime;
 }
 
-function get_title()
-{
-	global $titles, $columns, $chartType;
-	$typeNum = ($chartType == "elevation") ? "00065" : "00060";
-	$columnNum = get_column_num($typeNum, true, $columns);
-	$columnName = explode("_", $columns[$columnNum]);
-	$columnName = $titles[$columnName[1]];
-	return $columnName;
-}
-
+/**
+ * Get Simulated Plot Data
+ * Gets a series of simulated data from the file that the global $simulatedFilLocation points to
+ * @param string $location Site location to get data for
+ * @param string $type Data type to get the series for (ie. "00045" for precipitation)
+ * @return array Array containing the x,y values for the series.  
+ */
 function get_simulated_plot_data($location, $type)
 {
 	$chartData = array();
@@ -75,6 +75,14 @@ function get_simulated_plot_data($location, $type)
 	return $chartData;
 }
 
+/**
+ * Get Column Num
+ * Gets the column number of the data type.  Example: $data contains columns date, 00045, 00050, then asking for 00050 would return 2
+ * @param string $title Title of the column (ie. "00045" for precipitation)
+ * @param boolean $partial Accept partial title matches
+ * @param array $columns Column names to check
+ * @return integer Integer representing the column number.  
+ */
 function get_column_num($title, $partial, $columns)
 {
 	$columnNum = -1;
@@ -97,10 +105,9 @@ function get_column_num($title, $partial, $columns)
 
 
 $chartData = array();
-$chartData["title"] = $location . " " . get_title();
-$chartData["location"] = $location;
 $chartData["series"] = array();
 
+// Depending on the chart type, set the typeNum
 $typeNum = "00060";
 if ($chartType == "elevation") $typeNum = "00065";
 if ($chartType == "discharge") $typeNum = "00060";
@@ -112,6 +119,7 @@ if($dataType == "simulated" || $dataType == "both"){
 	$chartData["series"]["".$pieces[1]] = get_simulated_plot_data($location, $typeSimName); 
 }
  
+// Return the simulated data
 echo json_encode($chartData);
 ?>
 

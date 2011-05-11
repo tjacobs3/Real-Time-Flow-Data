@@ -1,4 +1,11 @@
 <?php
+/**
+ * Site numbers
+ * 
+ * Contains the mappings from site names to numbers
+ * Add more entries to $site_no to support more sites
+ */
+
 	$site_no = array(
 			"U22" => "05531175",
 			"D57" => "05531300",

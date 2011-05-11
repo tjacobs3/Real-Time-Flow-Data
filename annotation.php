@@ -1,5 +1,19 @@
 <?php
-
+/**
+ * Annotation.php
+ * 
+ * This file contains functionality for getting and setting annotations
+ * and interacting with the annotation database.
+ * @author Chengyin Liu
+ */
+ 
+ 
+ /**
+ * Call DataBase
+ * Attempts to connect to the database and perform a query
+ * @param string $query Database query to return
+ * @return resource Query result 
+ */
 function callDB($query) {
   include_once("annotation_settings.php");
   
@@ -11,6 +25,9 @@ function callDB($query) {
   return mysql_query($query);
 }
 
+/**
+ * TODO: Description
+ */
 function get_annotations() {
   $location    = addslashes($_GET["location"]);
   $chart_type  = addslashes($_GET["chartType"]);
@@ -35,6 +52,10 @@ function get_annotations() {
   echo json_encode($a);
 }
 
+/**
+ * TODO: Description
+ * @return integer 
+ */
 function add_annotations() {
   $location     = addslashes($_GET["location"]);
   $chart_type   = addslashes($_GET["chartType"]);
@@ -47,6 +68,10 @@ function add_annotations() {
   callDB($query);
 }
 
+/**
+ * TODO: Description
+ * @return integer 
+ */
 function delete_annotation() {
   $location     = addslashes($_GET["location"]);
   $chart_type   = addslashes($_GET["chartType"]);
