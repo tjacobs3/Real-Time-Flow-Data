@@ -6,6 +6,10 @@
  */
  
 	//Global arrays to hold location names and all data related to them
+	/** 
+	 * @global $locations used to store locations in an array
+	 * @global $data used to store all parsed data
+	 * @global $range used to store the range for which data is being requested
 	$locations = Array();
 	$data = Array();
 	$range;
@@ -14,6 +18,7 @@
 	 * Clear Invalid Entries
 	 * 
 	 * Remove invalid and blank entries from the location names global variable.
+	 * @param $count The total count of the number of locations detected
 	 */
 	function clearInvalidEntries($count)
 	{
@@ -33,7 +38,7 @@
 	 * Splits it based on the number of spaces (greater than 2)
 	 * Stores related information about each location in the global data array
 	 * @param array $line Array holding the tab delimited data where each array value is a string representing one line of data
-	 * @return boolean true if successful.  
+	 * @return boolean true if successfully parsed the given line.  
 	 */
 	function parseLine($line)
 	{
@@ -139,7 +144,7 @@
 	 * Parse File 
 	 * Parses an FEQ file for data within the past $timePeriod
 	 * Sets the global variable $data
-	 * @param string $location Location to get simulated data for
+	 * @param string $fileLocation file which contains simulated data
 	 * @param int $timePeriod number of days to look for.
 	 */
 	function parseFile($fileLocation, $timePeriod)

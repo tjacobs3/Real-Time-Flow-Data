@@ -1,4 +1,11 @@
 <?php
+/**
+ * This file contains functionality to create a database based on information submitted by the user
+ * Based on the POST data it creates a annotation table and creates an annotations_settings file
+ * It uses a simple MySQL query to create the database and writes the information contained in the
+ * POST data to the annotations_settings file
+ */
+
 $server = isset($_POST["server"]) ? $_POST["server"] : "localhost";
 $username = isset($_POST["username"]) ? $_POST["username"] : "";
 $password = isset($_POST["password"]) ? $_POST["password"] : "";
