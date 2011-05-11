@@ -1,3 +1,5 @@
+// Set up the site_names array
+// This maps the site numbers to their actual names
 var site_names = new Array();
 site_names["U84"] = "U84";
 site_names["D126"] = "D126";
@@ -9,37 +11,51 @@ site_names["D80"] = "Harger (ULTR, ADMT)";
 site_names["U84"] = "U84";
 site_names["D108"] = "D108";
 
+// File to get the simulation files from.  Changing this folder is NOT supported
 var simulationFolderName = "simulationfiles";
 
+// Initialize the MVC
 var rsfd = rsfd || {};
 rsfd.ui = rsfd.ui || {};
 rsfd.data = rsfd.data || {};
 rsfd.chart = rsfd.chart || {};
 rsfd.controller = rsfd.controller || {};
 
+// UI - Show Loading
+// Hides the main div and displays the loading div
 rsfd.ui.showLoading = function () {
   $('#main-content>div').hide();
   $('#main-content #loading').show();
 }
 
+// UI - Show Select Prompt
+// Hides the main div and shows the selection prompt
 rsfd.ui.showSelectPrompt = function () {
   $('#main-content>div').hide();
   $('#main-content #select-prompt').show();
 }
 
+// UI - Get Location
+// Gets the currently selected location
 rsfd.ui.getLocation = function () {
   return $("#location option:selected").val()
 }
 
+// UI - Get Period
+// Gets the currently selected period value
 rsfd.ui.getPeriod = function () {
   return parseInt($("#period").val());
 }
 
+// UI - Get Data Type
+// Outdated : returns "both"
 rsfd.ui.getDataType = function () {
   return "both";
   return $("#data-type input[name='data-type']:checked").val();
 }
 
+// UI - Get All Parameters
+// Returns an object holding the location, period and data_type
 rsfd.ui.getAllParameter = function () {
   return {
     location: rsfd.ui.getLocation(),
@@ -48,6 +64,8 @@ rsfd.ui.getAllParameter = function () {
   }
 }
 
+// UI - Get Parameters From URL
+// Sets the location and period from GET variables in the url
 rsfd.ui.getParametersFromURL = function () {
 	var loc = rsfd.ui.getUrlVars()["location"];
 	var period = rsfd.ui.getUrlVars()["period"];	
@@ -55,6 +73,8 @@ rsfd.ui.getParametersFromURL = function () {
 	if (period)$("#period").val(period);
 }
 
+// UI - Get URL Vars
+// Gets the GET variables from the URL
 rsfd.ui.getUrlVars = function() {
 	var vars = {};
 	var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
@@ -63,12 +83,16 @@ rsfd.ui.getUrlVars = function() {
 	return vars;
 }
 
+// UI - Add Simulated File Input
+// Adds another field for FEQ files
 rsfd.ui.addSimulatedFileInput = function () {
 	if(!rsfd.ui.simCount) rsfd.ui.simCount = 2;
 	$("#simulated_files_container").append("<label for=\"simulated_file_" + rsfd.ui.simCount + "\">FEQ File " + rsfd.ui.simCount + ": </label><input type=\"text\" name=\"simulated_file_" + rsfd.ui.simCount + "\" value=\"\" id=\"simulated_file_" + rsfd.ui.simCount + "\"readonly=\"readonly\"><br />");
 	rsfd.ui.simCount++;
 }
 
+// UI - Get Simulated File Names
+// Creates an array containing all the simulated file names that are selected
 rsfd.ui.getSimulatedFileNames = function () {
 	if(!rsfd.ui.simCount) rsfd.ui.simCount = 2;
 	var fileNames = new Array();
@@ -79,6 +103,8 @@ rsfd.ui.getSimulatedFileNames = function () {
 	return fileNames;
 }
 
+// UI - Set File Names
+// Sets the file name fields with the files found in the simulationFiles folder
 rsfd.ui.setFileNames = function () {
 	$.getJSON("get_simulationfile_names.php",
 	function(data) {
@@ -94,6 +120,8 @@ rsfd.ui.setFileNames = function () {
 	});
 }
 
+// UI - Set Offset
+// Sets the offset value by loading the values from get_site_offset.php
 rsfd.ui.setOffset = function () {
 	$.getJSON("get_site_offset.php",{location: rsfd.ui.getLocation()},
 	function(data)
@@ -102,11 +130,15 @@ rsfd.ui.setOffset = function () {
 	});
 }
 
+// UI - Reload Page
+// Refreshes the page
 rsfd.ui.reloadPage = function () {
 	var url = window.location.href.split('?');
 	window.location.href=url[0]+"?location=" + rsfd.ui.getLocation() + "&period=" + rsfd.ui.getPeriod();
 }
 
+// Data - Get Real Data
+// Loads the observed data from get_plot_data.php
 rsfd.data.getRealData = function (p, callbackFunc) {
   if (typeof callbackFunc !== 'function')
     return false;
@@ -116,6 +148,8 @@ rsfd.data.getRealData = function (p, callbackFunc) {
   return true;
 };
 
+// Data - Get Simulated Data
+// Gets the simulation data from simfile using get_simulation_data.php
 rsfd.data.getSimulatedData = function (p, simfile, callbackFunc) {
   if (typeof callbackFunc !== 'function')
     return false;
@@ -132,6 +166,8 @@ rsfd.data.getSimulatedData = function (p, simfile, callbackFunc) {
   return true;
 }
 
+// Data - Get Annotation
+// Gets the annotation data from annotation.php
 rsfd.data.getAnnotation = function (p, seriesName, callbackFunc) {
   if (typeof callbackFunc !== 'function')
     return false;
@@ -148,6 +184,8 @@ rsfd.data.getAnnotation = function (p, seriesName, callbackFunc) {
   $.getJSON('annotation.php', p2, callbackFunc);
 }
 
+// Data - Add Annotation
+// Adds an annotation by using annotation.php
 rsfd.data.addAnnotation = function (annotation, callbackFunc) {
   $.getJSON('annotation.php', 
     {
@@ -161,6 +199,8 @@ rsfd.data.addAnnotation = function (annotation, callbackFunc) {
     callbackFunc);
 }
 
+// Data - Delete Annotation
+// Deletes an annotation using annotation.php
 rsfd.data.deleteAnnotation = function (annotation, callbackFunc) {
   $.getJSON('annotation.php', 
     {
@@ -174,6 +214,8 @@ rsfd.data.deleteAnnotation = function (annotation, callbackFunc) {
     callbackFunc);  
 }
 
+// Chart - constructor
+// Creates a highchart chart in the given container holding no data
 rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
   var that = this;
   if (typeof id !== 'string') {
@@ -292,6 +334,8 @@ rsfd.Chart = function (container, title, location, yAxisName, chartType, id) {
   this.prompt_window = $(prompt);
 }
 
+// Chart - Display Data
+// Adds a series to the chart
 rsfd.Chart.prototype.displayData = function (data) {
   $("#" + this.container).show();
   for (var type in data.series) {
@@ -313,6 +357,8 @@ rsfd.Chart.prototype.displayData = function (data) {
   }
 }
 
+// Chart - Display Annotation
+// Adds annotation to the chart
 rsfd.Chart.prototype.displayAnnotation = function (data) {
   var i, anno;
   this.clearAllAnnotation();
@@ -324,6 +370,8 @@ rsfd.Chart.prototype.displayAnnotation = function (data) {
   }
 }
 
+// Chart - User Add Annotation
+// Runs when a user submits a new annotation
 rsfd.Chart.prototype.userAddAnnotation = function (seriesName, timestamp, content) {
   var anno = new rsfd.Annotation(this.annotations.length+1, this.location, this.type, seriesName, timestamp, content);
     
@@ -364,6 +412,8 @@ rsfd.Chart.prototype.hidePrompt = function (id) {
   });
 }
 
+// Chart - Shift Values
+// Shifts a series data values by amount
 rsfd.Chart.prototype.shiftValues = function (seriesName, amount) { 
 	for(sNames in this.series)
 	{
@@ -377,6 +427,8 @@ rsfd.Chart.prototype.shiftValues = function (seriesName, amount) {
 	}
 }
 
+// Chart - Get Element By X
+// Gets an element in the series by the x value
 rsfd.Chart.prototype.getElementByX = function (seriesName, x) {
   var data = this.series[seriesName].data;
   var a = 0, b = data.length;
@@ -395,6 +447,8 @@ rsfd.Chart.prototype.getElementByX = function (seriesName, x) {
   }  
 }
 
+// Chart - Add Annotation To Chart
+// Draws an annotation to the chart
 rsfd.Chart.prototype.addAnnotationToChart = function (annotation) {
   var posX, posY;
   var chart = this.chart;
@@ -443,6 +497,7 @@ rsfd.Chart.prototype.addAnnotationToChart = function (annotation) {
   return true;
 }
 
+// Chart - Add Annotation To List
 rsfd.Chart.prototype.addAnnotationToList = function (annotation) {
   var that = this;
   if (annotation.onList !== undefined) {
@@ -458,12 +513,14 @@ rsfd.Chart.prototype.addAnnotationToList = function (annotation) {
   });
 }
 
+// Chart - Add Annotation
 rsfd.Chart.prototype.addAnnotation = function (annotation) {
   if (this.addAnnotationToChart(annotation)) 
     this.addAnnotationToList(annotation);
   this.annotations.push(annotation);    
 }
 
+// Chart - Add All Annotation
 rsfd.Chart.prototype.addAllAnnotation = function () {
   var annotation;
   for (var i in this.annotations) {
@@ -473,26 +530,32 @@ rsfd.Chart.prototype.addAllAnnotation = function () {
   }  
 }
 
+// Chart - Remove Annotation
 rsfd.Chart.prototype.removeAnnotation = function (annotation) {
   annotation.remove();
 }
 
+// Chart - Remove All Annotation
 rsfd.Chart.prototype.removeAllAnnotation = function () {
   for (var i in this.annotations) {
      this.removeAnnotation(this.annotations[i]);
   }
 }
 
+// Chart - Clear All Annotation
 rsfd.Chart.prototype.clearAllAnnotation = function () {
   this.removeAllAnnotation();
   this.annotations.length = 0;
 }
 
+// Chart - Refresh All Annotation
+// Removes all annotations and re-adds them
 rsfd.Chart.prototype.refreshAllAnnotation = function (annotation) {
   this.removeAllAnnotation();
   this.addAllAnnotation();
 }
 
+// Annotation - constructor
 rsfd.Annotation = function (id, location, chartType, seriesName, timestamp, content) {
   this.id = id;
   this.location = location;
@@ -516,14 +579,19 @@ rsfd.Annotation.prototype.del = function () {
   rsfd.data.deleteAnnotation(this);
 }
 
+// Controller - constructor
 rsfd.Controller = function () {
   this.charts = {};
 }
 
+// Controller - register chart
+// Adds a chart to the the controllers charts
 rsfd.Controller.prototype.registerChart = function (type, chart) {
   this.charts[type] = chart;
 }
 
+// Controller - Shift Values
+// Shifts the values of the the chart series by amount
 rsfd.Controller.prototype.shiftValues = function (chartName, seriesName, amount) {
   if (typeof this.charts[chartName] !== "undefined")
   {
@@ -532,6 +600,8 @@ rsfd.Controller.prototype.shiftValues = function (chartName, seriesName, amount)
   }
 }
 
+// Controller - Show Observed Data
+// Loads the Observed data from the USGS servers and displays them on the chart
 rsfd.Controller.prototype.showObservedData = function (chart, parameters) {
   parameters.chartType = chart.type;  
   var p_id = chart.showPrompt('Loading Observed Data');
@@ -548,6 +618,8 @@ rsfd.Controller.prototype.showObservedData = function (chart, parameters) {
   } (chart, p_id, parameters, this));
 }
 
+// Controller - Show Simulated Data
+// Loads the simulated data from the FEQ files and displays the series on the chart
 rsfd.Controller.prototype.showSimulatedData = function (chart, parameters, simfile) {
   parameters.chartType = chart.type;  
   var p_id = chart.showPrompt('Loading Simulated Data: ' + simfile);
@@ -561,6 +633,8 @@ rsfd.Controller.prototype.showSimulatedData = function (chart, parameters, simfi
   } (chart, p_id, parameters, this));
 }
 
+// Controller - show Annotation
+// Loads annotations for the chart and displays them
 rsfd.Controller.prototype.showAnnotation = function (chart, parameters, seriesName) {
   parameters.chartType = chart.type;  
   var p_id = chart.showPrompt('Loading Annotation for "' + seriesName + '"');
@@ -572,6 +646,8 @@ rsfd.Controller.prototype.showAnnotation = function (chart, parameters, seriesNa
   } (chart, p_id, parameters));
 }
 
+// Controller - change location
+// Sets the titles of the charts to reflect the new location
 rsfd.Controller.prototype.changeLocation = function (loc)
 {
   var chart_type, new_title, chart;
@@ -582,6 +658,8 @@ rsfd.Controller.prototype.changeLocation = function (loc)
   }
 }
 
+// Controller - Show Data
+// Loads observed and simulated data onto the chart
 rsfd.Controller.prototype.showData = function() {
   var p = rsfd.ui.getAllParameter();
   var chart, prompt_id;
