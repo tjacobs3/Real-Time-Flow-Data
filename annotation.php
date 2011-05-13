@@ -26,7 +26,9 @@ function callDB($query) {
 }
 
 /**
- * TODO: Description
+ * Serve annotations as JSON
+ * Fetch annotations from the server and output it as a JSON file. Parameters are read from the HTTP Request.
+ * @return integer
  */
 function get_annotations() {
   $location    = addslashes($_GET["location"]);
@@ -53,7 +55,8 @@ function get_annotations() {
 }
 
 /**
- * TODO: Description
+ * Add annotations to the database
+ * Add annotations to the database. Parameters are read from the HTTP Request.
  * @return integer 
  */
 function add_annotations() {
@@ -69,7 +72,8 @@ function add_annotations() {
 }
 
 /**
- * TODO: Description
+ * Delete annotations from the database
+ * Delete annotations from the database. Parameters are read from the HTTP Request.
  * @return integer 
  */
 function delete_annotation() {
