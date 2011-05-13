@@ -1,4 +1,18 @@
-* Install Directions *
-Install Xampp
-Place files in htdocs
-With apache running, navigate to http://localhost/parser.php
+System Installation:
+
+Setting up annotation table: The installation folder should be extracted to the web server. After extraction the user should open a web browser(the application is supported in IE8, IE 9, Firefox 3.8,3.9,4 and Chrome) and navigate to /installation_folder_name/setup.php. This will start the setup script where the user will provide the following information which is required by the application to store annotation data:
+Server location
+Port number
+MySQL username
+MySQL password
+Database name
+
+After the user has entered this information, the script will automatically generate annotation_settings.php file which contains the all the information about the database. The script also creates the MySQL table which will store all the annotation data.
+
+Adding simulation data flat files:
+Place any new simulation flat files in the folder /simulationfiles/. This folder already contains some files that have old data.
+
+Accessing the application:
+After finishing the setup process, open a web browser and navigate to /installation_folder_name/
+This will load the web application, which loads data for the location ‘U22’ with a period of 7 days as a default. To change location, select another one from the drop down box. To increase or decrease period type a new number into the "Period:" textbox and click on refresh.
+
