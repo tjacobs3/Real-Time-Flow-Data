@@ -12,7 +12,10 @@
 			"U84" => "05531410",
 			"D108" => "05531500"
 		);
-		
+	/**
+	 * Converts a site name to a number
+	 * @param $name The site whose number is required
+	 * @return site number	
 	function site_name_to_number($name)
 	{
 		global $site_no;
